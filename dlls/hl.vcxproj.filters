@@ -1,0 +1,501 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{7e42d2b9-2efc-4857-9eba-5c068f877629}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat;for;f90</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{778165b1-b857-49fb-add7-ec5fdff7d938}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;fi;fd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{10f305af-50fe-469a-963b-6ed958bb1885}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;cnt;rtf;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Entities">
+      <UniqueIdentifier>{1ef0e669-cbf9-4960-abdf-7d1620b99b42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Entities\CBase">
+      <UniqueIdentifier>{19c7605a-4eb9-49e0-bec0-7dd415e3ff5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Client">
+      <UniqueIdentifier>{5dbb299a-96f9-4635-83da-7dc79d51c4ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\PMove">
+      <UniqueIdentifier>{5ed69051-d083-4b5c-bab9-a89367edad0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Weapons">
+      <UniqueIdentifier>{63fa4714-4486-48cc-bdfa-000d316b4550}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Entities\Monsters">
+      <UniqueIdentifier>{792612fa-eb30-4b95-bf91-b3408ef9c73e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Entities\Map">
+      <UniqueIdentifier>{0b8d7daf-3b70-491f-8ae7-6961e2dabd1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Items">
+      <UniqueIdentifier>{55596f7e-b705-487d-a4b8-4bb2f0160258}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Entities\Animation">
+      <UniqueIdentifier>{1977e577-c5cb-4a99-8615-f9d5675b784b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Entities\Ai">
+      <UniqueIdentifier>{0bf260d3-f007-4d75-bf8a-5fc437c46615}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameRules">
+      <UniqueIdentifier>{1c8bd119-4600-4667-a101-f004c7688355}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Sound">
+      <UniqueIdentifier>{1d631aa8-ef20-4e9f-a993-39b3b074eba6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\HL_DLL">
+      <UniqueIdentifier>{e982d1ac-0dcd-419d-afa3-7b9519bf5109}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="weapons.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_glock.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="ggrenade.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="aflock.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="agrunt.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="airtank.cpp">
+      <Filter>Source Files\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="animating.cpp">
+      <Filter>Source Files\Entities\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="animation.cpp">
+      <Filter>Source Files\Entities\Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="apache.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="barnacle.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="barney.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="bigmomma.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="bloater.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="bmodels.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="bullsquid.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="buttons.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="cbase.cpp">
+      <Filter>Source Files\Entities\CBase</Filter>
+    </ClCompile>
+    <ClCompile Include="client.cpp">
+      <Filter>Source Files\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="controller.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="defaultai.cpp">
+      <Filter>Source Files\Entities\Ai</Filter>
+    </ClCompile>
+    <ClCompile Include="doors.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="effects.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="explode.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="flyingmonster.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="func_break.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="func_tank.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>Source Files\HL_DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="gargantua.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="genericmonster.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="globals.cpp">
+      <Filter>Source Files\HL_DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="gman.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="h_ai.cpp">
+      <Filter>Source Files\Entities\Ai</Filter>
+    </ClCompile>
+    <ClCompile Include="h_battery.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="h_cine.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="h_cycler.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="h_export.cpp">
+      <Filter>Source Files\HL_DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="hassassin.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="zombie.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="headcrab.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="hgrunt.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="hornet.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="houndeye.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="ichthyosaur.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="islave.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="leech.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="scientist.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="rat.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="roach.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pm_shared\pm_shared.c">
+      <Filter>Source Files\PMove</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pm_shared\pm_math.c">
+      <Filter>Source Files\PMove</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pm_shared\pm_debug.c">
+      <Filter>Source Files\PMove</Filter>
+    </ClCompile>
+    <ClCompile Include="tempmonster.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="healthkit.cpp">
+      <Filter>Source Files\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="items.cpp">
+      <Filter>Source Files\Items</Filter>
+    </ClCompile>
+    <ClCompile Include="lights.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="monsterstate.cpp">
+      <Filter>Source Files\Entities\CBase</Filter>
+    </ClCompile>
+    <ClCompile Include="monsters.cpp">
+      <Filter>Source Files\Entities\CBase</Filter>
+    </ClCompile>
+    <ClCompile Include="..\game_shared\voice_gamemgr.cpp">
+      <Filter>Source Files\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="nodes.cpp">
+      <Filter>Source Files\Entities\Ai</Filter>
+    </ClCompile>
+    <ClCompile Include="mortar.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="world.cpp">
+      <Filter>Source Files\HL_DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="xen.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="subs.cpp">
+      <Filter>Source Files\HL_DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="schedule.cpp">
+      <Filter>Source Files\Entities\Ai</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>Source Files\HL_DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="multiplay_gamerules.cpp">
+      <Filter>Source Files\GameRules</Filter>
+    </ClCompile>
+    <ClCompile Include="singleplay_gamerules.cpp">
+      <Filter>Source Files\GameRules</Filter>
+    </ClCompile>
+    <ClCompile Include="teamplay_gamerules.cpp">
+      <Filter>Source Files\GameRules</Filter>
+    </ClCompile>
+    <ClCompile Include="turret.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="triggers.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="monstermaker.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="pathcorner.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="plane.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="plats.cpp">
+      <Filter>Source Files\Entities\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="scripted.cpp">
+      <Filter>Source Files\Entities\Ai</Filter>
+    </ClCompile>
+    <ClCompile Include="nihilanth.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="osprey.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="tentacle.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="talkmonster.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="squadmonster.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
+    <ClCompile Include="player.cpp">
+      <Filter>Source Files\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="skill.cpp">
+      <Filter>Source Files\GameRules</Filter>
+    </ClCompile>
+    <ClCompile Include="spectator.cpp">
+      <Filter>Source Files\Client</Filter>
+    </ClCompile>
+    <ClCompile Include="sound.cpp">
+      <Filter>Source Files\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="soundent.cpp">
+      <Filter>Source Files\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="gamerules.cpp">
+      <Filter>Source Files\GameRules</Filter>
+    </ClCompile>
+    <ClCompile Include="maprules.cpp">
+      <Filter>Source Files\GameRules</Filter>
+    </ClCompile>
+    <ClCompile Include="combat.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_rpg.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_satchel.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_shotgun.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_squeakgrenade.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_tripmine.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_crossbow.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_crowbar.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_egon.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_gauss.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_handgrenade.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_hornetgun.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_mp5.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_python.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="weapon_shared.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="activity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="activitymap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="animation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="basemonster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cbase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cdll_dll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="decals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="defaultai.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="doors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="effects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\engine\eiface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="enginecallback.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="explode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="extdll.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flyingmonster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="func_break.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gamerules.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hornet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="items.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="monsterevent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="monsters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="plane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="player.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pm_shared\pm_debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pm_shared\pm_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pm_shared\pm_info.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pm_shared\pm_materials.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pm_shared\pm_movevars.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\pm_shared\pm_shared.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="saverestore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="schedule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scripted.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="scriptevent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="skill.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="soundent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spectator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="squadmonster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="talkmonster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="teamplay_gamerules.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="trains.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="weapons.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
