@@ -1,3 +1,16 @@
+ThrillEX New Source Code
+======================
+
+This is the new source code for ThrillEX. The old codebase is haunted by evil demons, and the programmers of ThrillEX (droogie & I) don't have enough time to perform an exorcism on it, so we've jumped ship and moved to the 2.3 SDK.
+
+Changes made by the mod are marked with something like:
+```
+// Thrill Addition/Edit Start
+	pev->health += 0.52;
+// Thrill Addition/Edit End
+```
+If you ever wanna find out what's been changed...
+
 Half Life 1 SDK LICENSE
 ======================
 
