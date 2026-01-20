@@ -5,9 +5,9 @@ This is the new source code for ThrillEX. The old codebase is haunted by evil de
 
 Changes made by the mod are marked with something like:
 ```
-// Thrill Addition/Edit Start
+// ThrillEX Addition/Edit Start
 	pev->health += 0.52;
-// Thrill Addition/Edit End
+// ThrillEX Addition/Edit End
 ```
 If you ever wanna find out what's been changed...
 

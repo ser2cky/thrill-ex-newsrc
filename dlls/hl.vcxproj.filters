@@ -360,6 +360,9 @@
     <ClCompile Include="weapon_shared.cpp">
       <Filter>Source Files\Weapons</Filter>
     </ClCompile>
+    <ClCompile Include="wpn_shared\hl_wpn_chubtoad.cpp">
+      <Filter>Source Files\Weapons</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="activity.h">

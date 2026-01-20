@@ -3471,6 +3471,9 @@ void CBasePlayer::CheatImpulseCommands( int iImpulse )
 		GiveNamedItem( "weapon_satchel" );
 		GiveNamedItem( "weapon_snark" );
 		GiveNamedItem( "weapon_hornetgun" );
+		// ThrillEX Addition/Edit Start
+		GiveNamedItem("weapon_chub");
+		// ThrillEX Addition/Edit End
 #endif
 		gEvilImpulse101 = FALSE;
 		break;

@@ -46,6 +46,11 @@ void VectorAngles( const float *forward, float *angles );
 
 extern cvar_t *cl_lw;
 
+// ThrillEX Addition/Edit Start
+extern void R_BouncySparks(vec3_t org, vec3_t dir, int count, int noise, float lifetime);
+extern void R_RenderSmoke(vec3_t org);
+// ThrillEX Addition/Edit End
+
 extern "C"
 {
 
@@ -403,6 +408,20 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 		// do damage, paint decals
 		if ( tr.fraction != 1.0 )
 		{
+			// ThrillEX Addition/Edit Start
+			vec3_t vecImpactOrg;
+			vec3_t vecImpactDir;
+
+			for (i = 0; i < 3; i++)
+			{
+				vecImpactOrg[i] = tr.endpos[i] - (vecDir[i] * 4.0f);
+				vecImpactDir[i] = gEngfuncs.pfnRandomFloat(-128.0f, 128.0f);
+			}
+
+			R_BouncySparks(vecImpactOrg, vecImpactDir, 6, 256, 1.0f);
+			//R_RenderSmoke(vecImpactOrg);
+			// ThrillEX Addition/Edit End
+
 			switch(iBulletType)
 			{
 			default:
@@ -688,7 +707,10 @@ void EV_FireMP5( event_args_t *args )
 
 	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
 
-	switch( gEngfuncs.pfnRandomLong( 0, 1 ) )
+	// ThrillEX Addition/Edit Start
+
+#if 0
+	switch( gEngfuncs.pfnRandomLong( 0, 2 ) )
 	{
 	case 0:
 		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/hks1.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
@@ -696,7 +718,13 @@ void EV_FireMP5( event_args_t *args )
 	case 1:
 		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/hks2.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
 		break;
+	case 2:
+		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/hks3.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
+		break;
 	}
+#endif
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "hw_gun3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+	// ThrillEX Addition/Edit End
 
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );

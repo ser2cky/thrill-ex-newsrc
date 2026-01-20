@@ -63,7 +63,7 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
-    <OutDir>..\..\..\Half-Life\generations\dlls\</OutDir>
+    <OutDir>..\..\..\Half-Life\ThrillEX_Local\dlls\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -258,6 +258,7 @@
     <ClCompile Include="weapons.cpp" />
     <ClCompile Include="weapon_shared.cpp" />
     <ClCompile Include="world.cpp" />
+    <ClCompile Include="wpn_shared\hl_wpn_chubtoad.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_crossbow.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_crowbar.cpp" />
     <ClCompile Include="wpn_shared\hl_wpn_egon.cpp" />

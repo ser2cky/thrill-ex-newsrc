@@ -62,6 +62,14 @@ public:
 #define ITEM_SECURITY		3
 #define ITEM_BATTERY		4
 
+// ThrillEX Addition/Edit Start
+#define ITEM_ADRENALINE		5
+#define ITEM_RADIATION		6
+#define ITEM_SHIELD			7
+#define ITEM_CLOAK			8
+#define ITEM_LAST			9
+// ThrillEX Addition/Edit End
+
 #define WEAPON_NONE				0
 #define WEAPON_CROWBAR			1
 #define	WEAPON_GLOCK			2
@@ -78,6 +86,13 @@ public:
 #define WEAPON_TRIPMINE			13
 #define	WEAPON_SATCHEL			14
 #define	WEAPON_SNARK			15
+
+// ThrillEX Addition/Edit Start
+#define WEAPON_CHUB				16
+#define CHUB_WEIGHT				5
+#define CHUB_MAX_CARRY			5
+#define CHUB_DEFAULT_GIVE		1
+// ThrillEX Addition/Edit End
 
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
 
@@ -169,6 +184,8 @@ public:
 #define AMMO_RPGCLIP_GIVE		RPG_MAX_CLIP
 #define AMMO_URANIUMBOX_GIVE	20
 #define AMMO_SNARKBOX_GIVE		5
+
+
 
 // bullet types
 typedef	enum
@@ -1078,5 +1095,34 @@ private:
 	unsigned short m_usSnarkFire;
 };
 
+// ThrillEX Addition/Edit Start
+
+class CChubGrenade : public CBasePlayerWeapon
+{
+public:
+	void	Spawn(void);
+	void	Precache(void);
+	int		iItemSlot() { return 5; }
+	int		GetItemInfo(ItemInfo* p);
+
+	BOOL	Deploy(void);
+	void	Holster(int skiplocal = 0);
+	void	PrimaryAttack(void);
+	void	WeaponIdle(void);
+
+	virtual BOOL UseDecrement(void)
+	{
+#if defined( CLIENT_WEAPONS )
+		return TRUE;
+#else
+		return FALSE;
+#endif
+	}
+
+private:
+	//unsigned short m_usChubFire;
+};
+
+// ThrillEX Addition/Edit End
 
 #endif // WEAPONS_H

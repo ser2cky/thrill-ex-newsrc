@@ -292,6 +292,12 @@
     <ClCompile Include="..\dlls\weapon_shared.cpp">
       <Filter>Source Files\HL_DLL\Weapons</Filter>
     </ClCompile>
+    <ClCompile Include="cl_tent_custom.cpp">
+      <Filter>Source Files\Client_DLL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_chubtoad.cpp">
+      <Filter>Source Files\HL_DLL\Weapons</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ammo.h">

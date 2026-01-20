@@ -43,7 +43,7 @@
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
     <TargetName>client</TargetName>
-    <OutDir>..\..\..\Half-Life\generations\cl_dll\</OutDir>
+    <OutDir>..\..\..\Half-Life\ThrillEX_Local\cl_dlls\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -123,6 +123,7 @@
   <ItemGroup>
     <ClCompile Include="..\common\interface.cpp" />
     <ClCompile Include="..\dlls\weapon_shared.cpp" />
+    <ClCompile Include="..\dlls\wpn_shared\hl_wpn_chubtoad.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_crossbow.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_crowbar.cpp" />
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_egon.cpp" />
@@ -154,6 +155,7 @@
     <ClCompile Include="ammo_secondary.cpp" />
     <ClCompile Include="battery.cpp" />
     <ClCompile Include="cdll_int.cpp" />
+    <ClCompile Include="cl_tent_custom.cpp" />
     <ClCompile Include="com_weapons.cpp" />
     <ClCompile Include="death.cpp" />
     <ClCompile Include="demo.cpp" />
