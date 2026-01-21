@@ -115,15 +115,21 @@ void CChub::MonsterThink( void )
 	}
 
 	pev->sequence = LookupActivity(ACT_WALK);
-	if ( WALK_MOVE(ENT(pev), pev->angles.y, m_flGroundSpeed * flInterval, WALKMOVE_NORMAL) )
+	pev->framerate = 2.5f;
+
+	if ( !WALK_MOVE(ENT(pev), pev->angles.y, m_flGroundSpeed * flInterval, WALKMOVE_NORMAL) )
+	{
 		cantmove = 1;
+		m_flNextGoalChange = 0.0f;
+	}
 
 	if (oldseq != pev->sequence)
 		ResetSequenceInfo();
 
 	if (m_flNextGoalChange <= gpGlobals->time)
 	{
-		pev->ideal_yaw = pev->angles.y + RANDOM_FLOAT(-45.0f, 45.0f);
+		if ( RANDOM_FLOAT(0.0f, 1.0f) < 0.25f )
+			pev->ideal_yaw = pev->angles.y + RANDOM_FLOAT(-45.0f, 45.0f);
 
 		UTIL_MakeVectors(pev->angles);
 		vecStart = pev->origin + pev->view_ofs;
@@ -131,20 +137,25 @@ void CChub::MonsterThink( void )
 
 		UTIL_TraceLine(vecStart, vecEnd, dont_ignore_monsters, ENT(pev), &tr);
 
-		if ( tr.flFraction != 1.0f || cantmove )
+		if ( tr.flFraction < 0.95f || cantmove || tr.pHit && !FNullEnt(tr.pHit) )
 		{
-			ALERT(at_console, "chub: hit wall\n");
-			pev->ideal_yaw = (pev->angles.y * -1.0f) + RANDOM_FLOAT(-45.0f, 45.0f);
+			ALERT(at_console, "chub: hit wall %.2f\n", tr.flFraction);
+			pev->ideal_yaw = ( pev->angles.y + 180.0f ) + RANDOM_FLOAT(-45.0f, 45.0f);
 			cantmove = 0;
 		}
 
-		m_flNextGoalChange = gpGlobals->time + 0.5f;
+		m_flNextGoalChange = gpGlobals->time + 1.5f;
 	}
 
 	if (pev->ideal_yaw < -360.0f)
 		pev->ideal_yaw += 360.0f;
 	if (pev->ideal_yaw > 360.0f)
 		pev->ideal_yaw -= 360.0f;
+
+	if (pev->angles.y < -360.0f)
+		pev->angles.y += 360.0f;
+	if (pev->angles.y > 360.0f)
+		pev->angles.y -= 360.0f;
 
 	ChangeYaw(pev->yaw_speed);
 	pev->nextthink = gpGlobals->time;
@@ -303,5 +314,26 @@ WeaponIdle
 
 void CChubGrenade::WeaponIdle( void )
 {
+	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase())
+		return;
 
+	int iAnim;
+	float flRand = UTIL_SharedRandomFloat(m_pPlayer->random_seed, 0, 1);
+
+	if (flRand <= 0.75)
+	{
+		iAnim = CHUB_IDLE1;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 30.0 / 16 * (2);
+	}
+	else if (flRand <= 0.875)
+	{
+		iAnim = CHUB_FIDGETLICK;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 70.0 / 16.0;
+	}
+	else
+	{
+		iAnim = CHUB_FIDGETCROAK;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 80.0 / 16.0;
+	}
+	SendWeaponAnim(iAnim);
 }

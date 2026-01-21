@@ -31,6 +31,10 @@
 #include "weapons.h"
 #include "gamerules.h"
 
+// ThrillEX Addition/Edit Start
+#include "usermsg.h"
+// ThrillEX Addition/Edit End
+
 float UTIL_WeaponTimeBase( void )
 {
 #if defined( CLIENT_WEAPONS )

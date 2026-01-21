@@ -87,7 +87,24 @@ inline void MESSAGE_BEGIN( int msg_dest, int msg_type, const float *pOrigin = NU
 #define CVAR_SET_FLOAT	(*g_engfuncs.pfnCVarSetFloat)
 #define CVAR_SET_STRING	(*g_engfuncs.pfnCVarSetString)
 #define CVAR_GET_POINTER (*g_engfuncs.pfnCVarGetPointer)
-#define ALERT			(*g_engfuncs.pfnAlertMessage)
+
+// ThrillEX Addition/Edit Start
+
+// SERECKY JAN-20-26: Overriding ALERT function in order to prevent
+// AT_ERROR from crashing WON (The version of Half-Life I develop on)
+
+inline void ALERT(ALERT_TYPE atype, char* szFmt, ...) 
+{ 
+	if (atype == at_error)
+	{
+		(*g_engfuncs.pfnAlertMessage)(at_console, szFmt);
+		return;
+	}
+	(*g_engfuncs.pfnAlertMessage)(atype, szFmt);
+}
+
+// ThrillEX Addition/Edit End
+
 #define ENGINE_FPRINTF	(*g_engfuncs.pfnEngineFprintf)
 #define ALLOC_PRIVATE	(*g_engfuncs.pfnPvAllocEntPrivateData)
 inline void *GET_PRIVATE( edict_t *pent )

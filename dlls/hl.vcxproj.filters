@@ -363,6 +363,9 @@
     <ClCompile Include="wpn_shared\hl_wpn_chubtoad.cpp">
       <Filter>Source Files\Weapons</Filter>
     </ClCompile>
+    <ClCompile Include="usermsg.cpp">
+      <Filter>Source Files\Client</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="activity.h">
@@ -498,6 +501,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="weapons.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="usermsg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -17,6 +17,14 @@
 #include "util.h"
 #include "game.h"
 
+// ThrillEX Addition/Edit Start
+// SERECKY JAN-4-26: New cvars
+cvar_t	sv_knockback		= { "sv_knockback", "1", FCVAR_SERVER | FCVAR_ARCHIVE };
+cvar_t	sv_holster			= { "sv_knockback", "1", FCVAR_SERVER | FCVAR_ARCHIVE };
+cvar_t	sv_original_rof		= { "sv_original_rof", "0", FCVAR_SERVER | FCVAR_ARCHIVE };
+cvar_t	sv_ladder_mode		= { "sv_ladder_mode", "0", FCVAR_SERVER | FCVAR_ARCHIVE };
+// ThrillEX Addition/Edit End
+
 cvar_t	displaysoundlist = {"displaysoundlist","0"};
 
 // multiplayer server rules
@@ -453,6 +461,15 @@ cvar_t	sk_player_leg3	= { "sk_player_leg3","1" };
 void GameDLLInit( void )
 {
 	// Register cvars here:
+
+	// ThrillEX Addition/Edit Start
+	
+	CVAR_REGISTER(&sv_knockback);
+	CVAR_REGISTER(&sv_holster);
+	CVAR_REGISTER(&sv_original_rof);
+	CVAR_REGISTER(&sv_ladder_mode);
+
+	// ThrillEX Addition/Edit End
 
 	g_psv_gravity = CVAR_GET_POINTER( "sv_gravity" );
 	g_psv_aim = CVAR_GET_POINTER( "sv_aim" );

@@ -2090,7 +2090,7 @@ void CBaseMonster :: StartMonster ( void )
 		// Try to move the monster to make sure it's not stuck in a brush.
 		if (!WALK_MOVE ( ENT(pev), 0, 0, WALKMOVE_NORMAL ) )
 		{
-			ALERT(at_error, "Monster %s stuck in wall--level design error", STRING(pev->classname));
+			ALERT(at_error, "Monster %s stuck in wall--level design error\n", STRING(pev->classname));
 			pev->effects = EF_BRIGHTFIELD;
 		}
 	}
@@ -2106,7 +2106,7 @@ void CBaseMonster :: StartMonster ( void )
 
 		if ( !m_pGoalEnt )
 		{
-			ALERT(at_error, "ReadyMonster()--%s couldn't find target %s", STRING(pev->classname), STRING(pev->target));
+			ALERT(at_error, "ReadyMonster()--%s couldn't find target %s\n", STRING(pev->classname), STRING(pev->target));
 		}
 		else
 		{

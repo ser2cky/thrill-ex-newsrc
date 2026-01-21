@@ -115,6 +115,30 @@ cvar_t	v_ipitch_level		= {"v_ipitch_level", "0.3", 0, 0.3};
 
 float	v_idlescale;  // used by TFC for concussion grenade effect
 
+// ThrillEX Addition/Edit Start
+// SERECKY JAN-1-26: New CVars for stuff I find amusing
+cvar_t* cl_jitter_punch;
+cvar_t* cl_gunbob;
+
+cvar_t* cl_rollangle;
+cvar_t* cl_rollspeed;
+cvar_t* cl_cshift_mult;
+
+// CVars that control Quake-Styled damage kicks.
+cvar_t*	v_kicktime;
+cvar_t*	v_kickroll;
+cvar_t*	v_kickpitch;
+cvar_t* cl_damage_kick;
+
+float	v_dmg_time, v_dmg_roll, v_dmg_pitch;
+
+// SERECKY 1-17-26: Stuff for H.W Mode viewsize commands.
+cvar_t* scr_viewsize;
+int		sb_lines, local_viewsize = 0;
+
+void SCR_CalcRefdef(struct ref_params_s* pparams);
+// ThrillEX Addition/Edit End
+
 //=============================================================================
 /*
 void V_NormalizeAngles( float *angles )
@@ -410,7 +434,9 @@ void V_CalcViewRoll ( struct ref_params_s *pparams )
 	if ( !viewentity )
 		return;
 
-	side = V_CalcRoll ( viewentity->angles, pparams->simvel, pparams->movevars->rollangle, pparams->movevars->rollspeed );
+	// ThrillEX Addition/Edit Start
+	side = V_CalcRoll ( viewentity->angles, pparams->simvel, cl_rollangle->value, cl_rollspeed->value );
+	// ThrillEX Addition/Edit End
 
 	pparams->viewangles[ROLL] += side;
 
@@ -667,30 +693,62 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	// with view model distortion, this may be a cause. (SJB). 
 	view->origin[2] -= 1;
 
+	// ThrillEX Addition/Edit Start
+	// SERECKY JAN-20-26: Correct player's viewsize if we've changed the "scr_viewsize"
+	// CVAR. This should work in both GL-MODE and S.W MODE.
+	if ((local_viewsize != scr_viewsize->value) && (scr_viewsize->value <= 120))
+	{
+		local_viewsize = scr_viewsize->value;
+		gEngfuncs.pfnClientCmd(va("viewsize %d", (int)scr_viewsize->value));
+	}
+	// ThrillEX Addition/Edit End
+
 	// fudge position around to keep amount of weapon visible
 	// roughly equal with different FOV
-	if (pparams->viewsize == 110)
+	if (local_viewsize == 110)
 	{
 		view->origin[2] += 1;
 	}
-	else if (pparams->viewsize == 100)
+	else if (local_viewsize == 100)
 	{
 		view->origin[2] += 2;
 	}
-	else if (pparams->viewsize == 90)
+	else if (local_viewsize == 90)
 	{
 		view->origin[2] += 1;
 	}
-	else if (pparams->viewsize == 80)
+	else if (local_viewsize == 80)
 	{
 		view->origin[2] += 0.5;
 	}
 
+	// ThrillEX Addition/Edit Start
+	
+	vec3_t cl_punchangle;
+	vec3_t sv_punchangle;
+
+	VectorCopy( pparams->punchangle, cl_punchangle);
+	VectorCopy( ev_punchangle, sv_punchangle);
+
+	// SERECKY JAN-1-26: If cl_jitter_punch is on, round the punch axises
+	// into integers to emulate how Quake does it...
+
+	if (cl_jitter_punch->value)
+	{
+		for (i = 0; i < 3; i++)
+		{
+			cl_punchangle[i] = (int)cl_punchangle[i];
+			sv_punchangle[i] = (int)sv_punchangle[i];
+		}
+	}
+
 	// Add in the punchangle, if any
-	VectorAdd ( pparams->viewangles, pparams->punchangle, pparams->viewangles );
+	VectorAdd ( pparams->viewangles, (float *)&cl_punchangle, pparams->viewangles );
 
 	// Include client side punch, too
-	VectorAdd ( pparams->viewangles, (float *)&ev_punchangle, pparams->viewangles);
+	VectorAdd ( pparams->viewangles, (float *)&sv_punchangle, pparams->viewangles);
+
+	// ThrillEX Addition/Edit End
 
 	V_DropPunchAngle ( pparams->frametime, (float *)&ev_punchangle );
 
@@ -1618,24 +1676,10 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 		V_CalcNormalRefdef ( pparams );
 	}
 
-/*
-// Example of how to overlay the whole screen with red at 50 % alpha
-#define SF_TEST
-#if defined SF_TEST
-	{
-		screenfade_t sf;
-		gEngfuncs.pfnGetScreenFade( &sf );
-
-		sf.fader = 255;
-		sf.fadeg = 0;
-		sf.fadeb = 0;
-		sf.fadealpha = 128;
-		sf.fadeFlags = FFADE_STAYOUT | FFADE_OUT;
-
-		gEngfuncs.pfnSetScreenFade( &sf );
-	}
-#endif
-*/
+	// ThrillEX Addition/Edit Start
+	if (IEngineStudio.IsHardware())
+		SCR_CalcRefdef(pparams);
+	// ThrillEX Addition/Edit End
 }
 
 /*
@@ -1666,6 +1710,154 @@ void V_PunchAxis( int axis, float punch )
 	ev_punchangle[ axis ] = punch;
 }
 
+// ThrillEX Addition/Edit Start
+
+/*
+===============
+R_SetVrect
+===============
+*/
+
+void R_SetVrect(struct ref_params_s* pparams, int* pvrectin, int* pvrect, int lineadj)
+{
+	int		h;
+	float	size;
+	qboolean full = false;
+
+	if (scr_viewsize->value >= 100.0)
+	{
+		size = 100.0;
+		full = true;
+	}
+	else
+	{
+		size = scr_viewsize->value;
+	}
+
+	if (pparams->intermission)
+	{
+		full = true;
+		size = 100.0;
+		lineadj = 0;
+	}
+	size /= 100.0;
+
+	if (full)
+		h = pvrectin[3];
+	else
+		h = pvrectin[3] - lineadj;
+
+	if (full)
+		pvrect[2] = pvrectin[2];
+	else
+		pvrect[2] = pvrectin[2] * size;
+
+	if (pvrect[2] < 96)
+	{
+		size = 96.0 / pvrectin[2];
+		pvrect[2] = 96;	// min for icons
+	}
+
+	pvrect[2] &= ~7;
+	pvrect[3] = pvrectin[3] * size;
+
+	if (!full)
+	{
+		if (pvrect[3] > pvrectin[3] - lineadj)
+			pvrect[3] = pvrectin[3] - lineadj;
+	}
+	else
+		if (pvrect[3] > pvrectin[3])
+			pvrect[3] = pvrectin[3];
+
+	pvrect[3] &= ~1;
+	pvrect[0] = (pvrectin[2] - pvrect[2]) / 2;
+
+	if (full)
+		pvrect[1] = 0;
+	else
+		pvrect[1] = (h - pvrect[3]) / 2;
+}
+
+/*
+=================
+SCR_CalcRefdef
+
+Must be called whenever vid changes
+Internal use only
+=================
+*/
+
+void SCR_CalcRefdef(struct ref_params_s* pparams)
+{
+	int view[4];
+
+	SCREENINFO vid;
+	vid.iSize = sizeof(vid);
+	GetScreenInfo(&vid);
+
+	float size = scr_viewsize->value;
+
+	// bound viewsize
+	if (scr_viewsize->value < 100)
+		gEngfuncs.Cvar_SetValue("scr_viewsize", 100);
+	if (scr_viewsize->value > 150)
+		gEngfuncs.Cvar_SetValue("scr_viewsize", 150);
+
+	if (size >= 120)
+		sb_lines = 0;           // no status bar at all
+	else if (size >= 110)
+		sb_lines = 24;          // no inventory
+	else
+		sb_lines = 24 + 16 + 8;
+
+	// these calculations mirror those in R_Init() for r_refdef, but take no
+	// account of water warping
+	view[0] = 0;
+	view[1] = 0;
+	view[2] = vid.iWidth;
+	view[3] = vid.iHeight;
+
+	R_SetVrect(pparams, (int*)&view, (int*)&pparams->viewport, sb_lines);
+}
+
+/*
+=================
+SCR_GetViewSize
+=================
+*/
+
+int SCR_GetViewSize(void)
+{
+	return (int)scr_viewsize->value;
+}
+
+/*
+=================
+SCR_SizeUp_f
+
+Keybinding command
+=================
+*/
+void SCR_SizeUp_f(void)
+{
+	gEngfuncs.Cvar_SetValue("scr_viewsize", scr_viewsize->value + 10);
+}
+
+/*
+=================
+SCR_SizeDown_f
+
+Keybinding command
+=================
+*/
+void SCR_SizeDown_f(void)
+{
+	gEngfuncs.Cvar_SetValue("scr_viewsize", scr_viewsize->value - 10);
+}
+
+// ThrillEX Addition/Edit End
+
 /*
 =============
 V_Init
@@ -1674,6 +1866,28 @@ V_Init
 void V_Init (void)
 {
 	gEngfuncs.pfnAddCommand ("centerview", V_StartPitchDrift );
+
+	// ThrillEX Addition/Edit Start
+	gEngfuncs.pfnAddCommand ("scr_sizeup", SCR_SizeUp_f );
+	gEngfuncs.pfnAddCommand ("scr_sizedown", SCR_SizeDown_f );
+
+	scr_viewsize		= gEngfuncs.pfnRegisterVariable( "scr_viewsize", "120", FCVAR_ARCHIVE );
+	v_kicktime			= gEngfuncs.pfnRegisterVariable( "v_kicktime", "0.5", 0 );
+	v_kickroll			= gEngfuncs.pfnRegisterVariable( "v_kickroll", "0.6", 0 );
+	v_kickpitch			= gEngfuncs.pfnRegisterVariable( "v_kickpitch", "0.6", 0 );
+
+	// SERECKY JAN-1-26: NEW
+
+	cl_jitter_punch		= gEngfuncs.pfnRegisterVariable( "cl_jitter_punch", "1", FCVAR_ARCHIVE );
+	cl_gunbob			= gEngfuncs.pfnRegisterVariable( "cl_gunbob", "1", FCVAR_ARCHIVE );
+
+	cl_rollspeed		= gEngfuncs.pfnRegisterVariable( "cl_rollspeed", "200", FCVAR_ARCHIVE );
+	cl_rollangle		= gEngfuncs.pfnRegisterVariable( "cl_rollangle", "2.0", FCVAR_ARCHIVE );
+
+	cl_damage_kick		= gEngfuncs.pfnRegisterVariable( "cl_damage_kick", "1", FCVAR_ARCHIVE );
+	cl_cshift_mult		= gEngfuncs.pfnRegisterVariable( "cl_cshift_mult", "2.0", FCVAR_ARCHIVE );
+
+	// ThrillEX Addition/Edit End
 
 	scr_ofsx			= gEngfuncs.pfnRegisterVariable( "scr_ofsx","0", 0 );
 	scr_ofsy			= gEngfuncs.pfnRegisterVariable( "scr_ofsy","0", 0 );

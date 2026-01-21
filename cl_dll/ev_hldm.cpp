@@ -47,8 +47,12 @@ void VectorAngles( const float *forward, float *angles );
 extern cvar_t *cl_lw;
 
 // ThrillEX Addition/Edit Start
+
+// Test particle effects.
 extern void R_BouncySparks(vec3_t org, vec3_t dir, int count, int noise, float lifetime);
-extern void R_RenderSmoke(vec3_t org);
+extern void R_RenderSmoke(vec3_t org, float scale, float vert_scale, int count);
+extern void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed);
+extern void R_Blood(vec_t* org, vec_t* dir, int pcolor, int speed);
 // ThrillEX Addition/Edit End
 
 extern "C"
@@ -419,7 +423,8 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 			}
 
 			R_BouncySparks(vecImpactOrg, vecImpactDir, 6, 256, 1.0f);
-			//R_RenderSmoke(vecImpactOrg);
+			R_RenderSmoke(vecImpactOrg, 32.0f, 96.0f, 64);
+			//R_Blood(vecImpactOrg, vecImpactDir, 70, 25);
 			// ThrillEX Addition/Edit End
 
 			switch(iBulletType)

@@ -1674,7 +1674,7 @@ int CChangeLevel::ChangeList( LEVELLIST *pLevelList, int maxList )
 							entityFlags[ entityCount ] = flags;
 							entityCount++;
 							if ( entityCount > MAX_ENTITY )
-								ALERT( at_error, "Too many entities across a transition!" );
+								ALERT( at_error, "Too many entities across a transition!\n" );
 						}
 //						else
 //							ALERT( at_console, "Failed %s\n", STRING(pEntity->pev->classname) );

@@ -254,6 +254,7 @@
     <ClCompile Include="tentacle.cpp" />
     <ClCompile Include="triggers.cpp" />
     <ClCompile Include="turret.cpp" />
+    <ClCompile Include="usermsg.cpp" />
     <ClCompile Include="util.cpp" />
     <ClCompile Include="weapons.cpp" />
     <ClCompile Include="weapon_shared.cpp" />
@@ -319,6 +320,7 @@
     <ClInclude Include="talkmonster.h" />
     <ClInclude Include="teamplay_gamerules.h" />
     <ClInclude Include="trains.h" />
+    <ClInclude Include="usermsg.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vector.h" />
     <ClInclude Include="weapons.h" />

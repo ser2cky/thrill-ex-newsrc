@@ -113,6 +113,33 @@
 // entity flags
 #define EFLAG_SLERP				1	// do studio interpolation of this entity
 		
+
+// ThrillEX Addition/Edit Start
+//SERECKY JAN-20-26: ThrillEX has custom temp entities. Make of that what you will...
+
+#define TEX_TE_EXPLOSION	0		// Explosion effect. Apperance is controlled by CVars.
+// Coord:	Origin.x, Origin.y, Origin.z
+
+#define TEX_TE_SPARKS		1		// Implementation of HL-Alpha's TE_SPARKS
+// Coord:	Origin.x, Origin.y, Origin.z
+
+#define TEX_BOUNCE_SPARKS	2		// Bouncy Sparks that collide with the world.
+// Coord:	Origin.x, Origin.y, Origin.z
+// Coord:	Dir.x, Dir.y, Dir.z
+// Byte:	Count
+// Byte:	Noise/Randomization
+// Byte:	Lifetime (In 0.1s)
+
+#define TEX_SMOKE			3		// Smoke Q-Particles.
+// Origin:	Coord.x, Coord.y, Coord.z
+// Byte:	Width
+// Byte:	Height
+// Byte:	Count
+
+#define TEX_BLOOD			4		// Implementation of HL-Alpha's blood effect.
+
+// ThrillEX Addition/Edit End
+
 //
 // temp entity events
 //

@@ -17,6 +17,7 @@
 //
 
 #include "cvardef.h"
+#include <stdarg.h>
 
 #ifndef TRUE
 #define TRUE 1
@@ -158,3 +159,19 @@ inline void UnpackRGB(int &r, int &g, int &b, unsigned long ulRGB)\
 }
 
 HSPRITE LoadSprite(const char *pszName);
+
+// ThrillEX Addition/Edit Start
+
+inline char* va(char* format, ...)
+{
+	va_list		argptr;
+	static char		string[1024];
+
+	va_start(argptr, format);
+	vsprintf(string, format, argptr);
+	va_end(argptr);
+
+	return string;
+}
+
+// ThrillEX Addition/Edit End

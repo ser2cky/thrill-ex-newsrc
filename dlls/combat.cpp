@@ -523,12 +523,10 @@ void CBaseMonster::BecomeDead( void )
 	pev->health = pev->max_health / 2;
 	pev->max_health = 5; // max_health now becomes a counter for how many blood decals the corpse can place.
 
-	// make the corpse fly away from the attack vector
+	// ThrillEX Addition/Edit Start
 	pev->movetype = MOVETYPE_TOSS;
-	//pev->flags &= ~FL_ONGROUND;
-	//pev->origin.z += 2;
-	//pev->velocity = g_vecAttackDir * -1;
-	//pev->velocity = pev->velocity * RANDOM_FLOAT( 300, 400 );
+	UTIL_SetOrigin(pev, pev->origin);
+	// ThrillEX Addition/Edit End
 }
 
 
@@ -1353,6 +1351,21 @@ void CBaseMonster :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector
 		default:
 			break;
 		}
+
+		// ThrillEX Addition/Edit Start
+		if ( FCanKnockBack() )
+		{
+			// SERECKY JAN-21-26: Redid the velocity calculations on enemy knockback
+			// since the engine keeps complaining about getting too high of a velocity.
+			pev->gravity = 0.5f;
+			pev->movetype = MOVETYPE_TOSS;
+			pev->flags &= ~FL_ONGROUND;
+
+			pev->origin.z += 1;
+			pev->velocity = vecDir * DamageForce(gMultiDamage.amount * 2.5f);
+			pev->velocity.z = DamageForce(gMultiDamage.amount * 0.5f);
+		}
+		// ThrillEX Addition/Edit End
 
 		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
 		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );

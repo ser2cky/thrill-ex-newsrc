@@ -36,6 +36,10 @@
 #include "game.h"
 #include "hltv.h"
 
+// ThrillEX Addition/Edit Start
+#include "usermsg.h"
+// ThrillEX Addition/Edit End
+
 // #define DUCKFIX
 
 extern DLL_GLOBAL ULONG		g_ulModelIndexPlayer;
@@ -116,129 +120,17 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_pTank, FIELD_EHANDLE ),
 	DEFINE_FIELD( CBasePlayer, m_iHideHUD, FIELD_INTEGER ),
 	DEFINE_FIELD( CBasePlayer, m_iFOV, FIELD_INTEGER ),
-	
-	//DEFINE_FIELD( CBasePlayer, m_fDeadTime, FIELD_FLOAT ), // only used in multiplayer games
-	//DEFINE_FIELD( CBasePlayer, m_fGameHUDInitialized, FIELD_INTEGER ), // only used in multiplayer games
-	//DEFINE_FIELD( CBasePlayer, m_flStopExtraSoundTime, FIELD_TIME ),
-	//DEFINE_FIELD( CBasePlayer, m_fKnownItem, FIELD_INTEGER ), // reset to zero on load
-	//DEFINE_FIELD( CBasePlayer, m_iPlayerSound, FIELD_INTEGER ),	// Don't restore, set in Precache()
-	//DEFINE_FIELD( CBasePlayer, m_pentSndLast, FIELD_EDICT ),	// Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_flSndRoomtype, FIELD_FLOAT ),	// Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_flSndRange, FIELD_FLOAT ),	// Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_fNewAmmo, FIELD_INTEGER ), // Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_flgeigerRange, FIELD_FLOAT ),	// Don't restore, reset in Precache()
-	//DEFINE_FIELD( CBasePlayer, m_flgeigerDelay, FIELD_FLOAT ),	// Don't restore, reset in Precache()
-	//DEFINE_FIELD( CBasePlayer, m_igeigerRangePrev, FIELD_FLOAT ),	// Don't restore, reset in Precache()
-	//DEFINE_FIELD( CBasePlayer, m_iStepLeft, FIELD_INTEGER ), // Don't need to restore
-	//DEFINE_ARRAY( CBasePlayer, m_szTextureName, FIELD_CHARACTER, CBTEXTURENAMEMAX ), // Don't need to restore
-	//DEFINE_FIELD( CBasePlayer, m_chTextureType, FIELD_CHARACTER ), // Don't need to restore
-	//DEFINE_FIELD( CBasePlayer, m_fNoPlayerSound, FIELD_BOOLEAN ), // Don't need to restore, debug
-	//DEFINE_FIELD( CBasePlayer, m_iUpdateTime, FIELD_INTEGER ), // Don't need to restore
-	//DEFINE_FIELD( CBasePlayer, m_iClientHealth, FIELD_INTEGER ), // Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_iClientBattery, FIELD_INTEGER ), // Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_iClientHideHUD, FIELD_INTEGER ), // Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_fWeapon, FIELD_BOOLEAN ),  // Don't restore, client needs reset
-	//DEFINE_FIELD( CBasePlayer, m_nCustomSprayFrames, FIELD_INTEGER ), // Don't restore, depends on server message after spawning and only matters in multiplayer
-	//DEFINE_FIELD( CBasePlayer, m_vecAutoAim, FIELD_VECTOR ), // Don't save/restore - this is recomputed
-	//DEFINE_ARRAY( CBasePlayer, m_rgAmmoLast, FIELD_INTEGER, MAX_AMMO_SLOTS ), // Don't need to restore
-	//DEFINE_FIELD( CBasePlayer, m_fOnTarget, FIELD_BOOLEAN ), // Don't need to restore
-	//DEFINE_FIELD( CBasePlayer, m_nCustomSprayFrames, FIELD_INTEGER ), // Don't need to restore
-	
+
+	// ThrillEX Addition/Edit Start
+	// SERECKY JAN-20-26: Removed all the unused code here because it hurts my eyes.
+	// ThrillEX Addition/Edit End
 };	
-
-
-int giPrecacheGrunt = 0;
-int gmsgShake = 0;
-int gmsgFade = 0;
-int gmsgSelAmmo = 0;
-int gmsgFlashlight = 0;
-int gmsgFlashBattery = 0;
-int gmsgResetHUD = 0;
-int gmsgInitHUD = 0;
-int gmsgShowGameTitle = 0;
-int gmsgCurWeapon = 0;
-int gmsgHealth = 0;
-int gmsgDamage = 0;
-int gmsgBattery = 0;
-int gmsgTrain = 0;
-int gmsgLogo = 0;
-int gmsgWeaponList = 0;
-int gmsgAmmoX = 0;
-int gmsgHudText = 0;
-int gmsgDeathMsg = 0;
-int gmsgScoreInfo = 0;
-int gmsgTeamInfo = 0;
-int gmsgTeamScore = 0;
-int gmsgGameMode = 0;
-int gmsgMOTD = 0;
-int gmsgServerName = 0;
-int gmsgAmmoPickup = 0;
-int gmsgWeapPickup = 0;
-int gmsgItemPickup = 0;
-int gmsgHideWeapon = 0;
-int gmsgSetCurWeap = 0;
-int gmsgSayText = 0;
-int gmsgTextMsg = 0;
-int gmsgSetFOV = 0;
-int gmsgShowMenu = 0;
-int gmsgGeigerRange = 0;
-int gmsgTeamNames = 0;
-
-int gmsgStatusText = 0;
-int gmsgStatusValue = 0; 
-
-
-
-void LinkUserMessages( void )
-{
-	// Already taken care of?
-	if ( gmsgSelAmmo )
-	{
-		return;
-	}
-
-	gmsgSelAmmo = REG_USER_MSG("SelAmmo", sizeof(SelAmmo));
-	gmsgCurWeapon = REG_USER_MSG("CurWeapon", 3);
-	gmsgGeigerRange = REG_USER_MSG("Geiger", 1);
-	gmsgFlashlight = REG_USER_MSG("Flashlight", 2);
-	gmsgFlashBattery = REG_USER_MSG("FlashBat", 1);
-	gmsgHealth = REG_USER_MSG( "Health", 1 );
-	gmsgDamage = REG_USER_MSG( "Damage", 12 );
-	gmsgBattery = REG_USER_MSG( "Battery", 2);
-	gmsgTrain = REG_USER_MSG( "Train", 1);
-	gmsgHudText = REG_USER_MSG( "HudText", -1 );
-	gmsgSayText = REG_USER_MSG( "SayText", -1 );
-	gmsgTextMsg = REG_USER_MSG( "TextMsg", -1 );
-	gmsgWeaponList = REG_USER_MSG("WeaponList", -1);
-	gmsgResetHUD = REG_USER_MSG("ResetHUD", 1);		// called every respawn
-	gmsgInitHUD = REG_USER_MSG("InitHUD", 0 );		// called every time a new player joins the server
-	gmsgShowGameTitle = REG_USER_MSG("GameTitle", 1);
-	gmsgDeathMsg = REG_USER_MSG( "DeathMsg", -1 );
-	gmsgScoreInfo = REG_USER_MSG( "ScoreInfo", 9 );
-	gmsgTeamInfo = REG_USER_MSG( "TeamInfo", -1 );  // sets the name of a player's team
-	gmsgTeamScore = REG_USER_MSG( "TeamScore", -1 );  // sets the score of a team on the scoreboard
-	gmsgGameMode = REG_USER_MSG( "GameMode", 1 );
-	gmsgMOTD = REG_USER_MSG( "MOTD", -1 );
-	gmsgServerName = REG_USER_MSG( "ServerName", -1 );
-	gmsgAmmoPickup = REG_USER_MSG( "AmmoPickup", 2 );
-	gmsgWeapPickup = REG_USER_MSG( "WeapPickup", 1 );
-	gmsgItemPickup = REG_USER_MSG( "ItemPickup", -1 );
-	gmsgHideWeapon = REG_USER_MSG( "HideWeapon", 1 );
-	gmsgSetFOV = REG_USER_MSG( "SetFOV", 1 );
-	gmsgShowMenu = REG_USER_MSG( "ShowMenu", -1 );
-	gmsgShake = REG_USER_MSG("ScreenShake", sizeof(ScreenShake));
-	gmsgFade = REG_USER_MSG("ScreenFade", sizeof(ScreenFade));
-	gmsgAmmoX = REG_USER_MSG("AmmoX", 2);
-	gmsgTeamNames = REG_USER_MSG( "TeamNames", -1 );
-
-	gmsgStatusText = REG_USER_MSG("StatusText", -1);
-	gmsgStatusValue = REG_USER_MSG("StatusValue", 3); 
-
-}
 
 LINK_ENTITY_TO_CLASS( player, CBasePlayer );
 
-
+// ThrillEX Addition/Edit Start
+// SERECKY JAN-20-26: Moved player User Message methods to usermsg.h
+// ThrillEX Addition/Edit End
 
 void CBasePlayer :: Pain( void )
 {
@@ -253,67 +145,6 @@ void CBasePlayer :: Pain( void )
 	else
 		EMIT_SOUND(ENT(pev), CHAN_VOICE, "player/pl_pain7.wav", 1, ATTN_NORM);
 }
-
-/* 
- *
- */
-Vector VecVelocityForDamage(float flDamage)
-{
-	Vector vec(RANDOM_FLOAT(-100,100), RANDOM_FLOAT(-100,100), RANDOM_FLOAT(200,300));
-
-	if (flDamage > -50)
-		vec = vec * 0.7;
-	else if (flDamage > -200)
-		vec = vec * 2;
-	else
-		vec = vec * 10;
-	
-	return vec;
-}
-
-#if 0 /*
-static void ThrowGib(entvars_t *pev, char *szGibModel, float flDamage)
-{
-	edict_t *pentNew = CREATE_ENTITY();
-	entvars_t *pevNew = VARS(pentNew);
-
-	pevNew->origin = pev->origin;
-	SET_MODEL(ENT(pevNew), szGibModel);
-	UTIL_SetSize(pevNew, g_vecZero, g_vecZero);
-
-	pevNew->velocity		= VecVelocityForDamage(flDamage);
-	pevNew->movetype		= MOVETYPE_BOUNCE;
-	pevNew->solid			= SOLID_NOT;
-	pevNew->avelocity.x		= RANDOM_FLOAT(0,600);
-	pevNew->avelocity.y		= RANDOM_FLOAT(0,600);
-	pevNew->avelocity.z		= RANDOM_FLOAT(0,600);
-	CHANGE_METHOD(ENT(pevNew), em_think, SUB_Remove);
-	pevNew->ltime		= gpGlobals->time;
-	pevNew->nextthink	= gpGlobals->time + RANDOM_FLOAT(10,20);
-	pevNew->frame		= 0;
-	pevNew->flags		= 0;
-}
-	
-	
-static void ThrowHead(entvars_t *pev, char *szGibModel, floatflDamage)
-{
-	SET_MODEL(ENT(pev), szGibModel);
-	pev->frame			= 0;
-	pev->nextthink		= -1;
-	pev->movetype		= MOVETYPE_BOUNCE;
-	pev->takedamage		= DAMAGE_NO;
-	pev->solid			= SOLID_NOT;
-	pev->view_ofs		= Vector(0,0,8);
-	UTIL_SetSize(pev, Vector(-16,-16,0), Vector(16,16,56));
-	pev->velocity		= VecVelocityForDamage(flDamage);
-	pev->avelocity		= RANDOM_FLOAT(-1,1) * Vector(0,600,0);
-	pev->origin.z -= 24;
-	ClearBits(pev->flags, FL_ONGROUND);
-}
-
-
-*/ 
-#endif
 
 int TrainSpeed(int iSpeed, int iMax)
 {
