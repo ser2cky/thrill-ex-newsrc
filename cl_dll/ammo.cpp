@@ -72,6 +72,7 @@ int WeaponsResource :: HasAmmo( WEAPON *p )
 
 void WeaponsResource :: LoadWeaponSprites( WEAPON *pWeapon )
 {
+	// ThrillEX Addition/Edit Start
 	int i, iRes;
 
 	if (ScreenWidth < 640)
@@ -86,12 +87,9 @@ void WeaponsResource :: LoadWeaponSprites( WEAPON *pWeapon )
 
 	memset( &pWeapon->rcActive, 0, sizeof(wrect_t) );
 	memset( &pWeapon->rcInactive, 0, sizeof(wrect_t) );
-	memset( &pWeapon->rcAmmo, 0, sizeof(wrect_t) );
-	memset( &pWeapon->rcAmmo2, 0, sizeof(wrect_t) );
+
 	pWeapon->hInactive = 0;
 	pWeapon->hActive = 0;
-	pWeapon->hAmmo = 0;
-	pWeapon->hAmmo2 = 0;
 
 	sprintf(sz, "sprites/%s.txt", pWeapon->szName);
 	client_sprite_t *pList = SPR_GetList(sz, &i);
@@ -100,52 +98,6 @@ void WeaponsResource :: LoadWeaponSprites( WEAPON *pWeapon )
 		return;
 
 	client_sprite_t *p;
-	
-	p = GetSpriteList( pList, "crosshair", iRes, i );
-	if (p)
-	{
-		sprintf(sz, "sprites/%s.spr", p->szSprite);
-		pWeapon->hCrosshair = SPR_Load(sz);
-		pWeapon->rcCrosshair = p->rc;
-	}
-	else
-		pWeapon->hCrosshair = NULL;
-
-	p = GetSpriteList(pList, "autoaim", iRes, i);
-	if (p)
-	{
-		sprintf(sz, "sprites/%s.spr", p->szSprite);
-		pWeapon->hAutoaim = SPR_Load(sz);
-		pWeapon->rcAutoaim = p->rc;
-	}
-	else
-		pWeapon->hAutoaim = 0;
-
-	p = GetSpriteList( pList, "zoom", iRes, i );
-	if (p)
-	{
-		sprintf(sz, "sprites/%s.spr", p->szSprite);
-		pWeapon->hZoomedCrosshair = SPR_Load(sz);
-		pWeapon->rcZoomedCrosshair = p->rc;
-	}
-	else
-	{
-		pWeapon->hZoomedCrosshair = pWeapon->hCrosshair; //default to non-zoomed crosshair
-		pWeapon->rcZoomedCrosshair = pWeapon->rcCrosshair;
-	}
-
-	p = GetSpriteList(pList, "zoom_autoaim", iRes, i);
-	if (p)
-	{
-		sprintf(sz, "sprites/%s.spr", p->szSprite);
-		pWeapon->hZoomedAutoaim = SPR_Load(sz);
-		pWeapon->rcZoomedAutoaim = p->rc;
-	}
-	else
-	{
-		pWeapon->hZoomedAutoaim = pWeapon->hZoomedCrosshair;  //default to zoomed crosshair
-		pWeapon->rcZoomedAutoaim = pWeapon->rcZoomedCrosshair;
-	}
 
 	p = GetSpriteList(pList, "weapon", iRes, i);
 	if (p)
@@ -168,31 +120,7 @@ void WeaponsResource :: LoadWeaponSprites( WEAPON *pWeapon )
 	}
 	else
 		pWeapon->hActive = 0;
-
-	p = GetSpriteList(pList, "ammo", iRes, i);
-	if (p)
-	{
-		sprintf(sz, "sprites/%s.spr", p->szSprite);
-		pWeapon->hAmmo = SPR_Load(sz);
-		pWeapon->rcAmmo = p->rc;
-
-		gHR.iHistoryGap = max( gHR.iHistoryGap, pWeapon->rcActive.bottom - pWeapon->rcActive.top );
-	}
-	else
-		pWeapon->hAmmo = 0;
-
-	p = GetSpriteList(pList, "ammo2", iRes, i);
-	if (p)
-	{
-		sprintf(sz, "sprites/%s.spr", p->szSprite);
-		pWeapon->hAmmo2 = SPR_Load(sz);
-		pWeapon->rcAmmo2 = p->rc;
-
-		gHR.iHistoryGap = max( gHR.iHistoryGap, pWeapon->rcActive.bottom - pWeapon->rcActive.top );
-	}
-	else
-		pWeapon->hAmmo2 = 0;
-
+	// ThrillEX Addition/Edit End
 }
 
 // Returns the first weapon for a given slot.
@@ -394,8 +322,10 @@ void CHudAmmo::Think(void)
 // Helper function to return a Ammo pointer from id
 //
 
+// ThrillEX Addition/Edit Start
 HSPRITE* WeaponsResource :: GetAmmoPicFromWeapon( int iAmmoId, wrect_t& rect )
 {
+#if 0
 	for ( int i = 0; i < MAX_WEAPONS; i++ )
 	{
 		if ( rgWeapons[i].iAmmoType == iAmmoId )
@@ -409,10 +339,10 @@ HSPRITE* WeaponsResource :: GetAmmoPicFromWeapon( int iAmmoId, wrect_t& rect )
 			return &rgWeapons[i].hAmmo2;
 		}
 	}
-
+#endif
 	return NULL;
 }
-
+// ThrillEX Addition/Edit End
 
 // Menu Selection Code
 
@@ -548,11 +478,9 @@ int CHudAmmo::MsgFunc_HideWeapon( const char *pszName, int iSize, void *pbuf )
 		gpActiveSel = NULL;
 		SetCrosshair( 0, nullrc, 0, 0, 0 );
 	}
-	else
-	{
-		if ( m_pWeapon )
-			SetCrosshair( m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, 255, 255, 255 );
-	}
+
+	// ThrillEX Addition/Edit Start
+	// ThrillEX Addition/Edit End
 
 	return 1;
 }
@@ -613,21 +541,8 @@ int CHudAmmo::MsgFunc_CurWeapon(const char *pszName, int iSize, void *pbuf )
 
 	m_pWeapon = pWeapon;
 
-	if ( gHUD.m_iFOV >= 90 )
-	{ // normal crosshairs
-		if (fOnTarget && m_pWeapon->hAutoaim)
-			SetCrosshair(m_pWeapon->hAutoaim, m_pWeapon->rcAutoaim, 255, 255, 255);
-		else
-			SetCrosshair(m_pWeapon->hCrosshair, m_pWeapon->rcCrosshair, 255, 255, 255);
-	}
-	else
-	{ // zoomed crosshairs
-		if (fOnTarget && m_pWeapon->hZoomedAutoaim)
-			SetCrosshair(m_pWeapon->hZoomedAutoaim, m_pWeapon->rcZoomedAutoaim, 255, 255, 255);
-		else
-			SetCrosshair(m_pWeapon->hZoomedCrosshair, m_pWeapon->rcZoomedCrosshair, 255, 255, 255);
-
-	}
+	// ThrillEX Addition/Edit Start
+	// ThrillEX Addition/Edit End
 
 	m_fFade = 200.0f; //!!!
 	m_iFlags |= HUD_ACTIVE;
@@ -651,16 +566,18 @@ int CHudAmmo::MsgFunc_WeaponList(const char *pszName, int iSize, void *pbuf )
 	if (Weapon.iMax1 == 255)
 		Weapon.iMax1 = -1;
 
+	// ThrillEX Addition/Edit Start
 	Weapon.iAmmo2Type = READ_CHAR();
 	Weapon.iMax2 = READ_BYTE();
 	if (Weapon.iMax2 == 255)
 		Weapon.iMax2 = -1;
-
+	Weapon.iMaxClip = READ_CHAR();
 	Weapon.iSlot = READ_CHAR();
 	Weapon.iSlotPos = READ_CHAR();
 	Weapon.iId = READ_CHAR();
 	Weapon.iFlags = READ_BYTE();
 	Weapon.iClip = 0;
+	// ThrillEX Addition/Edit End
 
 	gWR.AddWeapon( &Weapon );
 
@@ -832,6 +749,7 @@ void CHudAmmo::UserCmd_PrevWeapon(void)
 // Drawing code
 //-------------------------------------------------------------------------
 
+// ThrillEX Addition/Edit Start
 int CHudAmmo::Draw(float flTime)
 {
 	int a, x, y, r, g, b;
@@ -845,108 +763,9 @@ int CHudAmmo::Draw(float flTime)
 
 	// Draw Weapon Menu
 	DrawWList(flTime);
-
-	// Draw ammo pickup history
-	gHR.DrawAmmoHistory( flTime );
-
-	if (!(m_iFlags & HUD_ACTIVE))
-		return 0;
-
-	if (!m_pWeapon)
-		return 0;
-
-	WEAPON *pw = m_pWeapon; // shorthand
-
-	// SPR_Draw Ammo
-	if ((pw->iAmmoType < 0) && (pw->iAmmo2Type < 0))
-		return 0;
-
-
-	int iFlags = DHN_DRAWZERO; // draw 0 values
-
-	AmmoWidth = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).right - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).left;
-
-	a = (int) max( MIN_ALPHA, m_fFade );
-
-	if (m_fFade > 0)
-		m_fFade -= (gHUD.m_flTimeDelta * 20);
-
-	UnpackRGB(r,g,b, RGB_YELLOWISH);
-
-	ScaleColors(r, g, b, a );
-
-	// Does this weapon have a clip?
-	y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight/2;
-
-	// Does weapon have any ammo at all?
-	if (m_pWeapon->iAmmoType > 0)
-	{
-		int iIconWidth = m_pWeapon->rcAmmo.right - m_pWeapon->rcAmmo.left;
-		
-		if (pw->iClip >= 0)
-		{
-			// room for the number and the '|' and the current ammo
-			
-			x = ScreenWidth - (8 * AmmoWidth) - iIconWidth;
-			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, pw->iClip, r, g, b);
-
-			wrect_t rc;
-			rc.top = 0;
-			rc.left = 0;
-			rc.right = AmmoWidth;
-			rc.bottom = 100;
-
-			int iBarWidth =  AmmoWidth/10;
-
-			x += AmmoWidth/2;
-
-			UnpackRGB(r,g,b, RGB_YELLOWISH);
-
-			// draw the | bar
-			FillRGBA(x, y, iBarWidth, gHUD.m_iFontHeight, r, g, b, a);
-
-			x += iBarWidth + AmmoWidth/2;;
-
-			// GL Seems to need this
-			ScaleColors(r, g, b, a );
-			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmoType), r, g, b);		
-
-
-		}
-		else
-		{
-			// SPR_Draw a bullets only line
-			x = ScreenWidth - 4 * AmmoWidth - iIconWidth;
-			x = gHUD.DrawHudNumber(x, y, iFlags | DHN_3DIGITS, gWR.CountAmmo(pw->iAmmoType), r, g, b);
-		}
-
-		// Draw the ammo Icon
-		int iOffset = (m_pWeapon->rcAmmo.bottom - m_pWeapon->rcAmmo.top)/8;
-		SPR_Set(m_pWeapon->hAmmo, r, g, b);
-		SPR_DrawAdditive(0, x, y - iOffset, &m_pWeapon->rcAmmo);
-	}
-
-	// Does weapon have seconday ammo?
-	if (pw->iAmmo2Type > 0) 
-	{
-		int iIconWidth = m_pWeapon->rcAmmo2.right - m_pWeapon->rcAmmo2.left;
-
-		// Do we have secondary ammo?
-		if ((pw->iAmmo2Type != 0) && (gWR.CountAmmo(pw->iAmmo2Type) > 0))
-		{
-			y -= gHUD.m_iFontHeight + gHUD.m_iFontHeight/4;
-			x = ScreenWidth - 4 * AmmoWidth - iIconWidth;
-			x = gHUD.DrawHudNumber(x, y, iFlags|DHN_3DIGITS, gWR.CountAmmo(pw->iAmmo2Type), r, g, b);
-
-			// Draw the ammo Icon
-			SPR_Set(m_pWeapon->hAmmo2, r, g, b);
-			int iOffset = (m_pWeapon->rcAmmo2.bottom - m_pWeapon->rcAmmo2.top)/8;
-			SPR_DrawAdditive(0, x, y - iOffset, &m_pWeapon->rcAmmo2);
-		}
-	}
 	return 1;
 }
-
+// ThrillEX Addition/Edit End
 
 //
 // Draws the ammo bar on the hud

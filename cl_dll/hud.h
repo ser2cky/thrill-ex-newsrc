@@ -29,10 +29,14 @@
 #include "cl_dll.h"
 #include "ammo.h"
 
-#define DHN_DRAWZERO 1
-#define DHN_2DIGITS  2
-#define DHN_3DIGITS  4
-#define MIN_ALPHA	 100	
+// ThrillEX Addition/Edit Start
+#define DHN_DRAWZERO	1
+#define DHN_2DIGITS		2
+#define DHN_3DIGITS		4
+#define DHN_HOLES		8 // New - serecky 1.11.26
+#define DHN_NOLZERO		16 // No leading zero.
+#define MIN_ALPHA		100	
+// ThrillEX Addition/Edit End
 
 #define		HUDELEM_ACTIVE	1
 
@@ -100,6 +104,7 @@ struct HUDLIST {
 class CHudAmmo: public CHudBase
 {
 public:
+	// ThrillEX Addition/Edit Start
 	int Init( void );
 	int VidInit( void );
 	int Draw(float flTime);
@@ -129,13 +134,14 @@ public:
 	void _cdecl UserCmd_NextWeapon( void );
 	void _cdecl UserCmd_PrevWeapon( void );
 
+	WEAPON* m_pWeapon;
+
 private:
 	float m_fFade;
 	RGBA  m_rgba;
-	WEAPON *m_pWeapon;
 	int	m_HUD_bucket0;
 	int m_HUD_selection;
-
+	// ThrillEX Addition/Edit End
 };
 
 //
@@ -381,27 +387,9 @@ private:
 	struct cvar_s *	m_HUD_saytext_time;
 };
 
-//
-//-----------------------------------------------------
-//
-class CHudBattery: public CHudBase
-{
-public:
-	int Init( void );
-	int VidInit( void );
-	int Draw(float flTime);
-	int MsgFunc_Battery(const char *pszName,  int iSize, void *pbuf );
-	
-private:
-	HSPRITE m_hSprite1;
-	HSPRITE m_hSprite2;
-	wrect_t *m_prc1;
-	wrect_t *m_prc2;
-	int	  m_iBat;	
-	float m_fFade;
-	int	  m_iHeight;		// width of the battery innards
-};
-
+// ThrillEX Addition/Edit Start
+// Removed CHUD Battery & merged it with CHudHealth.
+// ThrillEX Addition/Edit End
 
 //
 //-----------------------------------------------------
@@ -543,6 +531,59 @@ private:
 //-----------------------------------------------------
 //
 
+// ThrillEX Addition/Edit Start
+class CHudGeneral : public CHudBase
+{
+public:
+	int			Init(void);
+	void		Quake_VidInit(void);
+	void		Alpha_VidInit(void);
+	int			VidInit(void);
+	int			Draw(float flTime);
+	
+	void		DrawQuakeFace(int x, int y);
+	void		DrawQuakeHud(void);
+	void		DrawBasicQuakeHud(void);
+	void		DrawAlphaHud(void);
+	void		DrawGreenHud(void);
+	void		DrawCShift(void);
+
+	cvar_t*		m_pCvarHudStyle;
+	float		m_flScreenTint[4]; // R, G, B, A
+
+	// SERECKY JAN-18-26 : NEW!!!
+	float		m_flFacePainTime;
+	int			m_iHealthFade;
+	int			m_iAmmoFade;
+private:
+	int			m_hArmor;
+	int			m_hSBar[4];
+	int			m_hFace[5][2];
+
+	HSPRITE		m_hAlphaBars[4];
+	HSPRITE		m_hAlphaTints[4];
+	int			m_iAlphaWidth[4];
+	int			m_iAlphaHeight[4];
+
+	int			m_gHUD_num_0[4];
+	int			m_gHUD_anum_0[4];
+	int			m_gHUD_battery_empty[2];
+	int			m_gHUD_battery_full[2];
+	int			m_gHUD_divider[2];
+
+	int			m_iBatWidth;
+	int			m_iBatHeight;
+	int			m_iNumHeight[2];
+	int			m_iANumWidth[2];
+	int			m_iANumHeight[2];
+
+	wrect_t		*m_rcBatFull;
+};
+// ThrillEX Addition/Edit End
+
+//
+//-----------------------------------------------------
+//
 
 
 class CHud
@@ -573,8 +614,16 @@ public:
 	cvar_t  *m_pCvarStealMouse;
 	cvar_t	*m_pCvarDraw;
 
+	// ThrillEX Addition/Edit Start
+	// Tri_API HUD
+	cvar_t	*m_pCvarScale;
+	int		m_iHudScaleHeight, m_iHudScaleWidth;
+	// ThrillEX Addition/Edit End
+
 	int m_iFontHeight;
-	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b );
+	// ThrillEX Addition/Edit Start
+	int DrawHudNumber(int x, int y, int iFlags, int iNumber, int r, int g, int b, int a, int iSprite);
+	// ThrillEX Addition/Edit End
 	int DrawHudString(int x, int y, int iMaxX, char *szString, int r, int g, int b );
 	int DrawHudStringReverse( int xpos, int ypos, int iMinX, char *szString, int r, int g, int b );
 	int DrawHudNumberString( int xpos, int ypos, int iMinX, int iNumber, int r, int g, int b );
@@ -602,21 +651,23 @@ public:
 	
 	int GetSpriteIndex( const char *SpriteName );	// gets a sprite index, for use in the m_rghSprites[] array
 
-	CHudAmmo		m_Ammo;
-	CHudHealth		m_Health;
+	// ThrillEX Addition/Edit Start
+	CHudAmmo			m_Ammo;
+	CHudHealth			m_Health;
 	CHudSpectator		m_Spectator;
-	CHudGeiger		m_Geiger;
-	CHudBattery		m_Battery;
-	CHudTrain		m_Train;
-	CHudFlashlight	m_Flash;
-	CHudMessage		m_Message;
-	CHudStatusBar   m_StatusBar;
-	CHudDeathNotice m_DeathNotice;
-	CHudSayText		m_SayText;
-	CHudMenu		m_Menu;
+	CHudGeiger			m_Geiger;
+	CHudTrain			m_Train;
+	CHudFlashlight		m_Flash;
+	CHudMessage			m_Message;
+	CHudStatusBar		m_StatusBar;
+	CHudDeathNotice		m_DeathNotice;
+	CHudSayText			m_SayText;
+	CHudMenu			m_Menu;
 	CHudAmmoSecondary	m_AmmoSecondary;
-	CHudTextMessage m_TextMessage;
-	CHudStatusIcons m_StatusIcons;
+	CHudTextMessage		m_TextMessage;
+	CHudStatusIcons		m_StatusIcons;
+	CHudGeneral			m_GeneralHud;
+	// ThrillEX Addition/Edit End
 
 	void Init( void );
 	void VidInit( void );
@@ -647,10 +698,12 @@ public:
 	// sprite indexes
 	int m_HUD_number_0;
 
-
 	void AddHudElem(CHudBase *p);
-
 	float GetSensitivity();
+
+	// ThrillEX Addition/Edit Start
+	void UpdateScreenInfo(void);
+	// ThrillEX Addition/Edit End
 
 };
 

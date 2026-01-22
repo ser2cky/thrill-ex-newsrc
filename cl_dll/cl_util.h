@@ -43,25 +43,36 @@ inline float CVAR_GET_FLOAT( const char *x ) {	return gEngfuncs.pfnGetCvarFloat(
 inline char* CVAR_GET_STRING( const char *x ) {	return gEngfuncs.pfnGetCvarString( (char*)x ); }
 inline struct cvar_s *CVAR_CREATE( const char *cv, const char *val, const int flags ) {	return gEngfuncs.pfnRegisterVariable( (char*)cv, (char*)val, flags ); }
 
+// ThrillEX Addition/Edit Start
+
 #define SPR_Load (*gEngfuncs.pfnSPR_Load)
-#define SPR_Set (*gEngfuncs.pfnSPR_Set)
 #define SPR_Frames (*gEngfuncs.pfnSPR_Frames)
 #define SPR_GetList (*gEngfuncs.pfnSPR_GetList)
 
+extern void TRI_SprSet(HSPRITE spr, int r, int g, int b);
+extern void TRI_SprDrawAdditive(int frame, int x, int y, wrect_t* prc);
+extern void TRI_SprDrawHoles(int frame, int x, int y, wrect_t* prc);
+extern void TRI_FillRGBA(float x, float y, float width, float height, int r, int g, int b, int a, int additive = 1);
+extern void TRI_SprAdjustSize(float* x, float* y, float* w, float* h);
+extern void TRI_DrawConsoleString(float x, float y, const char* string, float width, float height);
+
+// TRI_API HUD
+
+#define SPR_Set (*TRI_SprSet)
 // SPR_Draw  draws a the current sprite as solid
 #define SPR_Draw (*gEngfuncs.pfnSPR_Draw)
 // SPR_DrawHoles  draws the current sprites,  with color index255 not drawn (transparent)
-#define SPR_DrawHoles (*gEngfuncs.pfnSPR_DrawHoles)
+#define SPR_DrawAdditive (*TRI_SprDrawAdditive)
 // SPR_DrawAdditive  adds the sprites RGB values to the background  (additive transulency)
-#define SPR_DrawAdditive (*gEngfuncs.pfnSPR_DrawAdditive)
+#define SPR_DrawHoles (*TRI_SprDrawHoles)
+#define FillRGBA (*TRI_FillRGBA)
 
 // SPR_EnableScissor  sets a clipping rect for HUD sprites.  (0,0) is the top-left hand corner of the screen.
 #define SPR_EnableScissor (*gEngfuncs.pfnSPR_EnableScissor)
 // SPR_DisableScissor  disables the clipping rect
 #define SPR_DisableScissor (*gEngfuncs.pfnSPR_DisableScissor)
-//
-#define FillRGBA (*gEngfuncs.pfnFillRGBA)
 
+// ThrillEX Addition/Edit End
 
 // ScreenHeight returns the height of the screen, in pixels
 #define ScreenHeight (gHUD.m_scrinfo.iHeight)

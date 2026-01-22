@@ -37,9 +37,45 @@ float HUD_GetFOV( void );
 
 extern cvar_t *sensitivity;
 
+// ThrillEX Addition/Edit Start
+// Update local version of the ScreenInfo and setup HUD's scale
+void CHud::UpdateScreenInfo( void )
+{
+	// setup screen info
+	m_scrinfo.iSize = sizeof( m_scrinfo );
+	GetScreenInfo(&m_scrinfo);
+
+	if ( m_pCvarScale->value )
+	{
+		float xscale;
+		if (m_scrinfo.iHeight < 700)
+			xscale = 1;
+		else if (m_scrinfo.iHeight < 1000)
+			xscale = 0.75;
+		else if (m_scrinfo.iHeight < 1400)
+			xscale = 0.5;
+		else
+			xscale = 0.3;
+
+		m_iHudScaleWidth  =  m_scrinfo.iWidth * xscale;
+		m_iHudScaleHeight = m_scrinfo.iHeight * xscale;
+	}
+	else
+	{
+		m_iHudScaleWidth  = m_scrinfo.iWidth;
+		m_iHudScaleHeight = m_scrinfo.iHeight;
+	}
+
+}
+// ThrillEX Addition/Edit End
+
 // Think
 void CHud::Think(void)
 {
+	// ThrillEX Addition/Edit Start
+	UpdateScreenInfo();
+	// ThrillEX Addition/Edit End
+
 	int newfov;
 	HUDLIST *pList = m_pHudList;
 
@@ -253,24 +289,53 @@ int CHud :: DrawHudStringReverse( int xpos, int ypos, int iMinX, char *szString,
 	return xpos;
 }
 
-int CHud :: DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, int b)
+// ThrillEX Addition/Edit Start
+
+//==========================================
+// DrawHudNumber
+// SERECKY JAN-11-26: Modified version of DrawHudNumber
+// that supports different fonts and holes
+//==========================================
+
+int CHud :: DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, int b, int a, int iSprite)
 {
-	int iWidth = GetSpriteRect(m_HUD_number_0).right - GetSpriteRect(m_HUD_number_0).left;
-	int k;
-	
+	int iHoles = (iFlags & DHN_HOLES) ? 1 : 0;
+	int r1, g1, b1, k;
+	int iWidth;
+
+	iWidth = GetSpriteRect(iSprite).right - GetSpriteRect(iSprite).left;
+
+	r1 = r; g1 = g; b1 = b;
+	a = (iHoles) ? 255 : a;
+
+	ScaleColors(r1, g1, b1, (iHoles) ? a : (a * 0.5f));
+	ScaleColors(r, g, b, a);
+
 	if (iNumber > 0)
 	{
 		// SPR_Draw 100's
 		if (iNumber >= 100)
 		{
-			 k = iNumber/100;
-			SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b );
-			SPR_DrawAdditive( 0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+			k = iNumber/100;
+			SPR_Set(GetSprite(iSprite + k), r, g, b );
+
+			if (iHoles)
+				SPR_DrawHoles( 0, x, y, &GetSpriteRect(iSprite + k));
+			else
+				SPR_DrawAdditive( 0, x, y, &GetSpriteRect(iSprite + k));
+
 			x += iWidth;
 		}
-		else if (iFlags & (DHN_3DIGITS))
+		else if ((iFlags & DHN_3DIGITS))
 		{
-			//SPR_DrawAdditive( 0, x, y, &rc );
+			if (!(iFlags & DHN_NOLZERO))
+			{
+				SPR_Set(GetSprite(iSprite), r1, g1, b1);
+				if (iHoles)
+					SPR_DrawHoles(0, x, y, &GetSpriteRect(iSprite));
+				else
+					SPR_DrawAdditive(0, x, y, &GetSpriteRect(iSprite));
+			}
 			x += iWidth;
 		}
 
@@ -278,48 +343,79 @@ int CHud :: DrawHudNumber( int x, int y, int iFlags, int iNumber, int r, int g, 
 		if (iNumber >= 10)
 		{
 			k = (iNumber % 100)/10;
-			SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b );
-			SPR_DrawAdditive( 0, x, y, &GetSpriteRect(m_HUD_number_0 + k));
+			SPR_Set(GetSprite(iSprite + k), r, g, b);
+
+			if (iHoles)
+				SPR_DrawHoles( 0, x, y, &GetSpriteRect(iSprite + k));
+			else
+				SPR_DrawAdditive( 0, x, y, &GetSpriteRect(iSprite + k));
+
 			x += iWidth;
 		}
-		else if (iFlags & (DHN_3DIGITS | DHN_2DIGITS))
+		else if ((iFlags & (DHN_3DIGITS | DHN_2DIGITS)))
 		{
-			//SPR_DrawAdditive( 0, x, y, &rc );
+			if (!(iFlags & DHN_NOLZERO))
+			{
+				SPR_Set(GetSprite(iSprite), r1, g1, b1);
+				if (iHoles)
+					SPR_DrawHoles(0, x, y, &GetSpriteRect(iSprite));
+				else
+					SPR_DrawAdditive(0, x, y, &GetSpriteRect(iSprite));
+			}
 			x += iWidth;
 		}
 
 		// SPR_Draw ones
 		k = iNumber % 10;
-		SPR_Set(GetSprite(m_HUD_number_0 + k), r, g, b );
-		SPR_DrawAdditive(0,  x, y, &GetSpriteRect(m_HUD_number_0 + k));
+		SPR_Set(GetSprite(iSprite + k), r, g, b);
+
+		if (iHoles)
+			SPR_DrawHoles( 0, x, y, &GetSpriteRect(iSprite + k));
+		else
+			SPR_DrawAdditive( 0, x, y, &GetSpriteRect(iSprite + k));
+
 		x += iWidth;
 	} 
 	else if (iFlags & DHN_DRAWZERO) 
 	{
-		SPR_Set(GetSprite(m_HUD_number_0), r, g, b );
+		SPR_Set(GetSprite(iSprite), r1, g1, b1);
 
 		// SPR_Draw 100's
-		if (iFlags & (DHN_3DIGITS))
+		if ((iFlags & DHN_3DIGITS))
 		{
-			//SPR_DrawAdditive( 0, x, y, &rc );
+			if (!(iFlags & DHN_NOLZERO))
+			{
+				if (iHoles)
+					SPR_DrawHoles(0, x, y, &GetSpriteRect(iSprite));
+				else
+					SPR_DrawAdditive(0, x, y, &GetSpriteRect(iSprite));
+			}
 			x += iWidth;
 		}
 
-		if (iFlags & (DHN_3DIGITS | DHN_2DIGITS))
+		if ((iFlags & (DHN_3DIGITS | DHN_2DIGITS)))
 		{
-			//SPR_DrawAdditive( 0, x, y, &rc );
+			if (!(iFlags & DHN_NOLZERO))
+			{
+				if (iHoles)
+					SPR_DrawHoles(0, x, y, &GetSpriteRect(iSprite));
+				else
+					SPR_DrawAdditive(0, x, y, &GetSpriteRect(iSprite));
+			}
 			x += iWidth;
 		}
-
 		// SPR_Draw ones
-		
-		SPR_DrawAdditive( 0,  x, y, &GetSpriteRect(m_HUD_number_0));
+		if (iHoles)
+			SPR_DrawHoles( 0, x, y, &GetSpriteRect(iSprite));
+		else
+			SPR_DrawAdditive( 0, x, y, &GetSpriteRect(iSprite));
 		x += iWidth;
 	}
 
 	return x;
 }
 
+// ThrillEX Addition/Edit End
 
 int CHud::GetNumWidth( int iNumber, int iFlags )
 {

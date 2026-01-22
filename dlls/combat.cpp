@@ -1353,17 +1353,20 @@ void CBaseMonster :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector
 		}
 
 		// ThrillEX Addition/Edit Start
-		if ( FCanKnockBack() )
+		if ( pev->health <= flDamage || pev->health <= gMultiDamage.amount )
 		{
-			// SERECKY JAN-21-26: Redid the velocity calculations on enemy knockback
-			// since the engine keeps complaining about getting too high of a velocity.
-			pev->gravity = 0.5f;
-			pev->movetype = MOVETYPE_TOSS;
-			pev->flags &= ~FL_ONGROUND;
+			if ( FCanKnockBack() )
+			{
+				// SERECKY JAN-21-26: Redid the velocity calculations on enemy knockback
+				// since the engine keeps complaining about getting too high of a velocity.
+				pev->gravity = 0.5f;
+				pev->movetype = MOVETYPE_TOSS;
+				pev->flags &= ~FL_ONGROUND;
 
-			pev->origin.z += 1;
-			pev->velocity = vecDir * DamageForce(gMultiDamage.amount * 2.5f);
-			pev->velocity.z = DamageForce(gMultiDamage.amount * 0.5f);
+				pev->origin.z += 1;
+				pev->velocity = vecDir * DamageForce(gMultiDamage.amount * 2.5f);
+				pev->velocity.z = DamageForce(gMultiDamage.amount * 0.5f);
+			}
 		}
 		// ThrillEX Addition/Edit End
 

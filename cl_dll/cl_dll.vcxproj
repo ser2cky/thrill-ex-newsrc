@@ -153,7 +153,6 @@
     <ClCompile Include="ammo.cpp" />
     <ClCompile Include="ammohistory.cpp" />
     <ClCompile Include="ammo_secondary.cpp" />
-    <ClCompile Include="battery.cpp" />
     <ClCompile Include="cdll_int.cpp" />
     <ClCompile Include="cl_tent_custom.cpp" />
     <ClCompile Include="com_weapons.cpp" />
@@ -172,6 +171,7 @@
     <ClCompile Include="hl\hl_objects.cpp" />
     <ClCompile Include="hl\hl_weapons.cpp" />
     <ClCompile Include="hud.cpp" />
+    <ClCompile Include="hud_general.cpp" />
     <ClCompile Include="hud_msg.cpp" />
     <ClCompile Include="hud_redraw.cpp" />
     <ClCompile Include="hud_servers.cpp" />

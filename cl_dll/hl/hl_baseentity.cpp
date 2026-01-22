@@ -353,5 +353,4 @@ void CSoundEnt::InsertSound ( int iType, const Vector &vecOrigin, int iVolume, f
 void RadiusDamage( Vector vecSrc, entvars_t *pevInflictor, entvars_t *pevAttacker, float flDamage, float flRadius, int iClassIgnore, int bitsDamageType ){}
 
 // ThrillEX Addition/Edit Start
-BOOL CBaseEntity::FCanKnockBack(void) { return TRUE; }
 // ThrillEX Addition/Edit End

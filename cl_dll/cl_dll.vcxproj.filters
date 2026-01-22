@@ -121,9 +121,6 @@
     <ClCompile Include="ammohistory.cpp">
       <Filter>Source Files\Hud</Filter>
     </ClCompile>
-    <ClCompile Include="battery.cpp">
-      <Filter>Source Files\Hud</Filter>
-    </ClCompile>
     <ClCompile Include="hud.cpp">
       <Filter>Source Files\Hud</Filter>
     </ClCompile>
@@ -297,6 +294,9 @@
     </ClCompile>
     <ClCompile Include="..\dlls\wpn_shared\hl_wpn_chubtoad.cpp">
       <Filter>Source Files\HL_DLL\Weapons</Filter>
+    </ClCompile>
+    <ClCompile Include="hud_general.cpp">
+      <Filter>Source Files\Hud</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

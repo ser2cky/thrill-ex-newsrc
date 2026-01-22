@@ -98,6 +98,8 @@ typedef struct
 //
 //-----------------------------------------------------
 //
+
+// ThrillEX Addition/Edit Start
 class CHudHealth: public CHudBase
 {
 public:
@@ -105,14 +107,17 @@ public:
 	virtual int VidInit( void );
 	virtual int Draw(float fTime);
 	virtual void Reset( void );
+
+	int MsgFunc_Battery(const char *pszName,  int iSize, void *pbuf);
 	int MsgFunc_Health(const char *pszName,  int iSize, void *pbuf);
 	int MsgFunc_Damage(const char *pszName,  int iSize, void *pbuf);
+	void GetPainColor(int& r, int& g, int& b);
+
 	int m_iHealth;
+	int m_iBat;
 	int m_HUD_dmg_bio;
-	int m_HUD_cross;
-	float m_fAttackFront, m_fAttackRear, m_fAttackLeft, m_fAttackRight;
-	void GetPainColor( int &r, int &g, int &b );
 	float m_fFade;
+	float m_fAttackFront, m_fAttackRear, m_fAttackLeft, m_fAttackRight;
 
 private:
 	HSPRITE m_hSprite;
@@ -125,3 +130,4 @@ private:
 	void CalcDamageDirection(vec3_t vecFrom);
 	void UpdateTiles(float fTime, long bits);
 };	
+// ThrillEX Addition/Edit End

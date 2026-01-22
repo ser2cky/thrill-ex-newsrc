@@ -48,11 +48,14 @@ extern cvar_t *cl_lw;
 
 // ThrillEX Addition/Edit Start
 
+#if 0
 // Test particle effects.
 extern void R_BouncySparks(vec3_t org, vec3_t dir, int count, int noise, float lifetime);
 extern void R_RenderSmoke(vec3_t org, float scale, float vert_scale, int count);
 extern void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed);
 extern void R_Blood(vec_t* org, vec_t* dir, int pcolor, int speed);
+#endif
+
 // ThrillEX Addition/Edit End
 
 extern "C"
@@ -255,7 +258,8 @@ void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName )
 	int iRand;
 	physent_t *pe;
 
-	gEngfuncs.pEfxAPI->R_BulletImpactParticles( pTrace->endpos );
+	// ThrillEX Addition/Edit Start
+	// ThrillEX Addition/Edit End
 
 	iRand = gEngfuncs.pfnRandomLong(0,0x7FFF);
 	if ( iRand < (0x7fff/2) )// not every bullet makes a sound.
@@ -284,7 +288,9 @@ void EV_HLDM_GunshotDecalTrace( pmtrace_t *pTrace, char *decalName )
 	}
 }
 
-void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, int iBulletType )
+// ThrillEX Addition/Edit Start
+
+void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, int iBulletType, vec3_t org )
 {
 	physent_t *pe;
 
@@ -303,10 +309,16 @@ void EV_HLDM_DecalGunshot( pmtrace_t *pTrace, int iBulletType )
 		default:
 			// smoke and decal
 			EV_HLDM_GunshotDecalTrace( pTrace, EV_HLDM_DamageDecal( pe ) );
+			if (org == vec3_origin)
+				gEngfuncs.pEfxAPI->R_RunParticleEffect( pTrace->endpos, vec3_origin, 0, 12);
+			else
+				gEngfuncs.pEfxAPI->R_RunParticleEffect( org, vec3_origin, 0, 12 );
 			break;
 		}
 	}
 }
+
+// ThrillEX Addition/Edit End
 
 int EV_HLDM_CheckTracer( int idx, float *vecSrc, float *end, float *forward, float *right, int iBulletType, int iTracerFreq, int *tracerCount )
 {
@@ -414,49 +426,34 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 		{
 			// ThrillEX Addition/Edit Start
 			vec3_t vecImpactOrg;
-			vec3_t vecImpactDir;
+			//vec3_t vecImpactDir;
 
 			for (i = 0; i < 3; i++)
 			{
 				vecImpactOrg[i] = tr.endpos[i] - (vecDir[i] * 4.0f);
-				vecImpactDir[i] = gEngfuncs.pfnRandomFloat(-128.0f, 128.0f);
+				//vecImpactDir[i] = gEngfuncs.pfnRandomFloat(-128.0f, 128.0f);
 			}
-
-			R_BouncySparks(vecImpactOrg, vecImpactDir, 6, 256, 1.0f);
-			R_RenderSmoke(vecImpactOrg, 32.0f, 96.0f, 64);
-			//R_Blood(vecImpactOrg, vecImpactDir, 70, 25);
-			// ThrillEX Addition/Edit End
 
 			switch(iBulletType)
 			{
 			default:
-			case BULLET_PLAYER_9MM:		
-				
-				EV_HLDM_PlayTextureSound( idx, &tr, vecSrc, vecEnd, iBulletType );
-				EV_HLDM_DecalGunshot( &tr, iBulletType );
-			
-					break;
-			case BULLET_PLAYER_MP5:		
-				
-				if ( !tracer )
-				{
+				case BULLET_PLAYER_9MM:		
 					EV_HLDM_PlayTextureSound( idx, &tr, vecSrc, vecEnd, iBulletType );
-					EV_HLDM_DecalGunshot( &tr, iBulletType );
-				}
-				break;
-			case BULLET_PLAYER_BUCKSHOT:
-				
-				EV_HLDM_DecalGunshot( &tr, iBulletType );
-			
-				break;
-			case BULLET_PLAYER_357:
-				
-				EV_HLDM_PlayTextureSound( idx, &tr, vecSrc, vecEnd, iBulletType );
-				EV_HLDM_DecalGunshot( &tr, iBulletType );
-				
-				break;
-
+					EV_HLDM_DecalGunshot( &tr, iBulletType, vecImpactOrg );
+					break;
+				case BULLET_PLAYER_MP5:		
+					EV_HLDM_PlayTextureSound( idx, &tr, vecSrc, vecEnd, iBulletType );
+					EV_HLDM_DecalGunshot( &tr, iBulletType, vecImpactOrg );
+					break;
+				case BULLET_PLAYER_BUCKSHOT:
+					EV_HLDM_DecalGunshot( &tr, iBulletType, vecImpactOrg);
+					break;
+				case BULLET_PLAYER_357:
+					EV_HLDM_PlayTextureSound( idx, &tr, vecSrc, vecEnd, iBulletType );
+					EV_HLDM_DecalGunshot( &tr, iBulletType, vecImpactOrg );
+					break;
 			}
+			// ThrillEX Addition/Edit End
 		}
 
 		gEngfuncs.pEventAPI->EV_PopPMStates();

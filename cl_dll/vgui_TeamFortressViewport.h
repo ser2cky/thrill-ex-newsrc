@@ -1702,13 +1702,8 @@ public:
 		m_pHealthTGA->getSize(iXSize,iYSize);
 		m_pHealthTGA->getPos(iXPos, iYPos);
 
-		// Paint the player's health
-		int x = gHUD.DrawHudNumber( iXPos + iXSize + 5, iYPos + 5, DHN_3DIGITS | DHN_DRAWZERO, gHUD.m_Health.m_iHealth, r, g, b);
-
-		// Draw the vertical line
-		int HealthWidth = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).right - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).left;
-		x += HealthWidth / 2;
-		FillRGBA(x, iYPos + 5, HealthWidth / 10, gHUD.m_iFontHeight, 255, 160, 0, a);
+		// ThrillEX Addition/Edit Start
+		// ThrillEX Addition/Edit End
 	}
 };
 

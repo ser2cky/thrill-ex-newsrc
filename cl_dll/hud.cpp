@@ -31,7 +31,9 @@
 #include "demo_api.h"
 #include "vgui_scorepanel.h"
 
-
+// ThrillEX Addition/Edit Start
+extern void CustomTent_Init(void);
+// ThrillEX Addition/Edit End
 
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
 {
@@ -312,6 +314,11 @@ void CHud :: Init( void )
 	default_fov = CVAR_CREATE( "default_fov", "90", 0 );
 	m_pCvarStealMouse = CVAR_CREATE( "hud_capturemouse", "1", FCVAR_ARCHIVE );
 	m_pCvarDraw = CVAR_CREATE( "hud_draw", "1", FCVAR_ARCHIVE );
+
+	// ThrillEX Addition/Edit Start
+	m_pCvarScale = CVAR_CREATE("hud_scale", "0", FCVAR_ARCHIVE);
+	// ThrillEX Addition/Edit End
+
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );
 
 	m_pSpriteList = NULL;
@@ -332,13 +339,13 @@ void CHud :: Init( void )
 	// In case we get messages before the first update -- time will be valid
 	m_flTime = 1.0;
 
+	// ThrillEX Addition/Edit Start
 	m_Ammo.Init();
 	m_Health.Init();
 	m_SayText.Init();
 	m_Spectator.Init();
 	m_Geiger.Init();
 	m_Train.Init();
-	m_Battery.Init();
 	m_Flash.Init();
 	m_Message.Init();
 	m_StatusBar.Init();
@@ -346,6 +353,10 @@ void CHud :: Init( void )
 	m_AmmoSecondary.Init();
 	m_TextMessage.Init();
 	m_StatusIcons.Init();
+	m_GeneralHud.Init();
+	CustomTent_Init();
+	// ThrillEX Addition/Edit End
+
 	GetClientVoiceMgr()->Init(&g_VoiceStatusHelper, (vgui::Panel**)&gViewPort);
 
 	m_Menu.Init();
@@ -396,8 +407,9 @@ int CHud :: GetSpriteIndex( const char *SpriteName )
 
 void CHud :: VidInit( void )
 {
-	m_scrinfo.iSize = sizeof(m_scrinfo);
-	GetScreenInfo(&m_scrinfo);
+	// ThrillEX Addition/Edit Start
+	UpdateScreenInfo();
+	// ThrillEX Addition/Edit End
 
 	// ----------
 	// Load Sprites
@@ -425,8 +437,11 @@ void CHud :: VidInit( void )
 			client_sprite_t *p = m_pSpriteList;
 			for ( int j = 0; j < m_iSpriteCountAllRes; j++ )
 			{
-				if ( p->iRes == m_iRes )
+				// ThrillEX Addition/Edit Start
+				// SERECKY JAN-20-26: Always load sprites with an iRes of 0
+				if (( p->iRes == m_iRes ) || ( p->iRes == 0 ))
 					m_iSpriteCount++;
+				// ThrillEX Addition/Edit End
 				p++;
 			}
 
@@ -439,8 +454,11 @@ void CHud :: VidInit( void )
 			int index = 0;
 			for ( int j = 0; j < m_iSpriteCountAllRes; j++ )
 			{
-				if ( p->iRes == m_iRes )
+				// ThrillEX Addition/Edit Start
+				// SERECKY JAN-20-26: Always load sprites with an iRes of 0
+				if (( p->iRes == m_iRes ) || ( p->iRes == 0 ))
 				{
+				// ThrillEX Addition/Edit End
 					char sz[256];
 					sprintf(sz, "sprites/%s.spr", p->szSprite);
 					m_rghSprites[index] = SPR_Load(sz);
@@ -462,8 +480,11 @@ void CHud :: VidInit( void )
 		int index = 0;
 		for ( int j = 0; j < m_iSpriteCountAllRes; j++ )
 		{
-			if ( p->iRes == m_iRes )
+			// ThrillEX Addition/Edit Start
+			// SERECKY JAN-20-26: Always load sprites with an iRes of 0
+			if ((p->iRes == m_iRes) || (p->iRes == 0))
 			{
+			// ThrillEX Addition/Edit End
 				char sz[256];
 				sprintf( sz, "sprites/%s.spr", p->szSprite );
 				m_rghSprites[index] = SPR_Load(sz);
@@ -479,12 +500,12 @@ void CHud :: VidInit( void )
 
 	m_iFontHeight = m_rgrcRects[m_HUD_number_0].bottom - m_rgrcRects[m_HUD_number_0].top;
 
+	// ThrillEX Addition/Edit Start
 	m_Ammo.VidInit();
 	m_Health.VidInit();
 	m_Spectator.VidInit();
 	m_Geiger.VidInit();
 	m_Train.VidInit();
-	m_Battery.VidInit();
 	m_Flash.VidInit();
 	m_Message.VidInit();
 	m_StatusBar.VidInit();
@@ -494,7 +515,9 @@ void CHud :: VidInit( void )
 	m_AmmoSecondary.VidInit();
 	m_TextMessage.VidInit();
 	m_StatusIcons.VidInit();
+	m_GeneralHud.VidInit();
 	GetClientVoiceMgr()->VidInit();
+	// ThrillEX Addition/Edit End
 }
 
 int CHud::MsgFunc_Logo(const char *pszName,  int iSize, void *pbuf)

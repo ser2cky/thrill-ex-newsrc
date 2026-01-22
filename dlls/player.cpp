@@ -3882,18 +3882,20 @@ void CBasePlayer :: UpdateClientData( void )
 				pszName = "Empty";
 			else
 				pszName = II.pszName;
-
+			// ThrillEX Addition/Edit Start
 			MESSAGE_BEGIN( MSG_ONE, gmsgWeaponList, NULL, pev );  
 				WRITE_STRING(pszName);			// string	weapon name
 				WRITE_BYTE(GetAmmoIndex(II.pszAmmo1));	// byte		Ammo Type
 				WRITE_BYTE(II.iMaxAmmo1);				// byte     Max Ammo 1
 				WRITE_BYTE(GetAmmoIndex(II.pszAmmo2));	// byte		Ammo2 Type
 				WRITE_BYTE(II.iMaxAmmo2);				// byte     Max Ammo 2
+				WRITE_BYTE(II.iMaxClip);				// byte		Max clip
 				WRITE_BYTE(II.iSlot);					// byte		bucket
 				WRITE_BYTE(II.iPosition);				// byte		bucket pos
 				WRITE_BYTE(II.iId);						// byte		id (bit index into pev->weapons)
 				WRITE_BYTE(II.iFlags);					// byte		Flags
 			MESSAGE_END();
+			// ThrillEX Addition/Edit End
 		}
 	}
 

@@ -27,9 +27,11 @@
 #include "parsemsg.h"
 #include <string.h>
 
-
-DECLARE_MESSAGE(m_Health, Health )
-DECLARE_MESSAGE(m_Health, Damage )
+// ThrillEX Addition/Edit Start
+DECLARE_MESSAGE( m_Health, Health )
+DECLARE_MESSAGE( m_Health, Damage )
+DECLARE_MESSAGE( m_Health, Battery )
+// ThrillEX Addition/Edit End
 
 #define PAIN_NAME "sprites/%d_pain.spr"
 #define DAMAGE_NAME "sprites/%d_dmg.spr"
@@ -54,9 +56,13 @@ int giDmgFlags[NUM_DMG_TYPES] =
 
 int CHudHealth::Init(void)
 {
+	// ThrillEX Addition/Edit Start
 	HOOK_MESSAGE(Health);
+	HOOK_MESSAGE(Battery);
 	HOOK_MESSAGE(Damage);
+	// ThrillEX Addition/Edit End
 	m_iHealth = 100;
+	m_iBat = 0;
 	m_fFade = 0;
 	m_iFlags = 0;
 	m_bitsDamage = 0;
@@ -87,13 +93,11 @@ void CHudHealth::Reset( void )
 
 int CHudHealth::VidInit(void)
 {
+	// ThrillEX Addition/Edit Start
 	m_hSprite = 0;
-
-	m_HUD_dmg_bio = gHUD.GetSpriteIndex( "dmg_bio" ) + 1;
-	m_HUD_cross = gHUD.GetSpriteIndex( "cross" );
-
 	giDmgHeight = gHUD.GetSpriteRect(m_HUD_dmg_bio).right - gHUD.GetSpriteRect(m_HUD_dmg_bio).left;
 	giDmgWidth = gHUD.GetSpriteRect(m_HUD_dmg_bio).bottom - gHUD.GetSpriteRect(m_HUD_dmg_bio).top;
+	// ThrillEX Addition/Edit End
 	return 1;
 }
 
@@ -115,6 +119,24 @@ int CHudHealth:: MsgFunc_Health(const char *pszName,  int iSize, void *pbuf )
 	return 1;
 }
 
+// ThrillEX Addition/Edit Start
+int CHudHealth::MsgFunc_Battery(const char *pszName,  int iSize, void *pbuf)
+{
+	m_iFlags |= HUD_ACTIVE;
+
+	
+	BEGIN_READ( pbuf, iSize );
+	int x = READ_SHORT();
+
+	if (x != m_iBat)
+	{
+		m_fFade = FADE_TIME;
+		m_iBat = x;
+	}
+
+	return 1;
+}
+// ThrillEX Addition/Edit End
 
 int CHudHealth:: MsgFunc_Damage(const char *pszName,  int iSize, void *pbuf )
 {
@@ -149,14 +171,13 @@ void CHudHealth::GetPainColor( int &r, int &g, int &b )
 		iHealth -= 25;
 	else if ( iHealth < 0 )
 		iHealth = 0;
-#if 0
-	g = iHealth * 255 / 100;
-	r = 255 - g;
-	b = 0;
-#else
+
+	// ThrillEX Addition/Edit Start
 	if (m_iHealth > 25)
 	{
-		UnpackRGB(r,g,b, RGB_YELLOWISH);
+		g = iHealth * 255 / 100;
+		r = 255 - g;
+		b = 0;
 	}
 	else
 	{
@@ -164,11 +185,12 @@ void CHudHealth::GetPainColor( int &r, int &g, int &b )
 		g = 0;
 		b = 0;
 	}
-#endif 
+	// ThrillEX Addition/Edit End
 }
 
 int CHudHealth::Draw(float flTime)
 {
+	// ThrillEX Addition/Edit Start
 	int r, g, b;
 	int a = 0, x, y;
 	int HealthWidth;
@@ -200,35 +222,10 @@ int CHudHealth::Draw(float flTime)
 	// If health is getting low, make it bright red
 	if (m_iHealth <= 15)
 		a = 255;
-		
-	GetPainColor( r, g, b );
-	ScaleColors(r, g, b, a );
-
-	// Only draw health if we have the suit.
-	if (gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)))
-	{
-		HealthWidth = gHUD.GetSpriteRect(gHUD.m_HUD_number_0).right - gHUD.GetSpriteRect(gHUD.m_HUD_number_0).left;
-		int CrossWidth = gHUD.GetSpriteRect(m_HUD_cross).right - gHUD.GetSpriteRect(m_HUD_cross).left;
-
-		y = ScreenHeight - gHUD.m_iFontHeight - gHUD.m_iFontHeight / 2;
-		x = CrossWidth /2;
-
-		SPR_Set(gHUD.GetSprite(m_HUD_cross), r, g, b);
-		SPR_DrawAdditive(0, x, y, &gHUD.GetSpriteRect(m_HUD_cross));
-
-		x = CrossWidth + HealthWidth / 2;
-
-		x = gHUD.DrawHudNumber(x, y, DHN_3DIGITS | DHN_DRAWZERO, m_iHealth, r, g, b);
-
-		x += HealthWidth/2;
-
-		int iHeight = gHUD.m_iFontHeight;
-		int iWidth = HealthWidth/10;
-		FillRGBA(x, y, iWidth, iHeight, 255, 160, 0, a);
-	}
 
 	DrawDamage(flTime);
 	return DrawPain(flTime);
+	// ThrillEX Addition/Edit End
 }
 
 void CHudHealth::CalcDamageDirection(vec3_t vecFrom)

@@ -23,6 +23,7 @@
 
 #define WEAPON_IS_ONTARGET 0x40
 
+// ThrillEX Addition/Edit Start
 struct WEAPON
 {
 	char	szName[MAX_WEAPON_NAME];
@@ -35,28 +36,44 @@ struct WEAPON
 	int		iFlags;
 	int		iId;
 	int		iClip;
+	int		iMaxClip;
 
 	int		iCount;		// # of itesm in plist
 
 	HSPRITE hActive;
 	wrect_t rcActive;
+
 	HSPRITE hInactive;
 	wrect_t rcInactive;
-	HSPRITE	hAmmo;
-	wrect_t rcAmmo;
-	HSPRITE hAmmo2;
-	wrect_t rcAmmo2;
-	HSPRITE hCrosshair;
-	wrect_t rcCrosshair;
-	HSPRITE hAutoaim;
-	wrect_t rcAutoaim;
-	HSPRITE hZoomedCrosshair;
-	wrect_t rcZoomedCrosshair;
-	HSPRITE hZoomedAutoaim;
-	wrect_t rcZoomedAutoaim;
+
+	HSPRITE hAlphaIcon;		// NEW - serecky 1.2.26
+	wrect_t rcAlphaIcon;
+
+	HSPRITE hQuakeAmmo1;	// SERECKY JAN-18-26: NEW!!!
+	wrect_t rcQuakeAmmo1;
+
+	HSPRITE hQuakeAmmo2;	// SERECKY JAN-18-26: NEW!!!
+	wrect_t rcQuakeAmmo2;
 };
 
 typedef int AMMO;
 
+#define ITEM_ALWAYS_DRAW	1
+#define ITEM_BAR_COUNT		2
+#define ITEM_NUMBER_COUNT	4
+
+typedef struct hud_item_s
+{
+	char		szName[MAX_WEAPON_NAME];
+	int			iCount;
+	int			iMax;
+	int			iFlags;
+
+	HSPRITE		hIcon;
+	wrect_t		rcIcon;
+	HSPRITE		hAlphaIcon;
+	wrect_t		rcAlphaIcon;
+} HUD_ITEM;
+// ThrillEX Addition/Edit End
 
 #endif

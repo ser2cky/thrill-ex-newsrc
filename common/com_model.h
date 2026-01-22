@@ -348,4 +348,45 @@ typedef struct player_info_s
 	customization_t customdata;
 } player_info_t;
 
+// ThrillEX Addition/Edit Start
+//
+// sprite representation in memory
+//
+typedef enum { SPR_SINGLE = 0, SPR_GROUP } spriteframetype_t;
+
+typedef struct mspriteframe_s
+{
+	int		width;
+	int		height;
+	float	up, down, left, right;
+	int		gl_texturenum;
+} mspriteframe_t;
+
+typedef struct
+{
+	int		numframes;
+	float		*intervals;
+	mspriteframe_t	*frames[1];
+} mspritegroup_t;
+
+typedef struct
+{
+	spriteframetype_t	type;
+	mspriteframe_t	*frameptr;
+} mspriteframedesc_t;
+
+typedef struct
+{
+	short	type;
+	short	texFormat;
+	int		maxwidth;
+	int		maxheight;
+	int		numframes;
+	int		paloffset;
+	float	beamlength;		// remove?
+	void	*cachespot;		// remove?
+	mspriteframedesc_t	frames[1];
+} msprite_t;
+// ThrillEX Addition/Edit End
+
 #endif // #define COM_MODEL_H
