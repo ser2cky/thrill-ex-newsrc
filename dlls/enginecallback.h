@@ -93,15 +93,7 @@ inline void MESSAGE_BEGIN( int msg_dest, int msg_type, const float *pOrigin = NU
 // SERECKY JAN-20-26: Overriding ALERT function in order to prevent
 // AT_ERROR from crashing WON (The version of Half-Life I develop on)
 
-inline void ALERT(ALERT_TYPE atype, char* szFmt, ...) 
-{ 
-	if (atype == at_error)
-	{
-		(*g_engfuncs.pfnAlertMessage)(at_console, szFmt);
-		return;
-	}
-	(*g_engfuncs.pfnAlertMessage)(atype, szFmt);
-}
+extern void ALERT(ALERT_TYPE atype, char* szFmt, ...);
 
 // ThrillEX Addition/Edit End
 

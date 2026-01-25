@@ -21,6 +21,8 @@
 #include "nodes.h"
 #include "player.h"
 
+// ThrillEX Addition/Edit Start
+
 enum glock_e {
 	GLOCK_IDLE1 = 0,
 	GLOCK_IDLE2,
@@ -37,7 +39,6 @@ enum glock_e {
 LINK_ENTITY_TO_CLASS( weapon_glock, CGlock );
 LINK_WEAPON_TO_CLASS( weapon_9mmhandgun, CGlock );
 
-
 void CGlock::Spawn( )
 {
 	pev->classname = MAKE_STRING("weapon_9mmhandgun"); // hack to allow for old names
@@ -50,10 +51,9 @@ void CGlock::Spawn( )
 	FallInit();// get ready to fall down.
 }
 
-
 void CGlock::Precache( void )
 {
-	PRECACHE_MODEL("models/v_9mmhandgun.mdl");
+	PRECACHE_MODEL("models/v_glock.mdl");
 	PRECACHE_MODEL("models/w_9mmhandgun.mdl");
 	PRECACHE_MODEL("models/p_9mmhandgun.mdl");
 
@@ -62,12 +62,10 @@ void CGlock::Precache( void )
 	PRECACHE_SOUND("items/9mmclip1.wav");
 	PRECACHE_SOUND("items/9mmclip2.wav");
 
-	PRECACHE_SOUND ("weapons/pl_gun1.wav");//silenced handgun
-	PRECACHE_SOUND ("weapons/pl_gun2.wav");//silenced handgun
-	PRECACHE_SOUND ("weapons/pl_gun3.wav");//handgun
+	PRECACHE_SOUND ("weapons/pl_gun1.wav");
+	PRECACHE_SOUND ("weapons/pl_gun2.wav");
 
 	m_usFireGlock1 = PRECACHE_EVENT( 1, "events/glock1.sc" );
-	m_usFireGlock2 = PRECACHE_EVENT( 1, "events/glock2.sc" );
 }
 
 int CGlock::GetItemInfo(ItemInfo *p)
@@ -90,20 +88,10 @@ int CGlock::GetItemInfo(ItemInfo *p)
 BOOL CGlock::Deploy( )
 {
 	// pev->body = 1;
-	return DefaultDeploy( "models/v_9mmhandgun.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", /*UseDecrement() ? 1 : 0*/ 0 );
-}
-
-void CGlock::SecondaryAttack( void )
-{
-	GlockFire( 0.1, 0.2, FALSE );
+	return DefaultDeploy( "models/v_glock.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", /*UseDecrement() ? 1 : 0*/ 0 );
 }
 
 void CGlock::PrimaryAttack( void )
-{
-	GlockFire( 0.01, 0.3, TRUE );
-}
-
-void CGlock::GlockFire( float flSpread , float flCycleTime, BOOL fUseAutoAim )
 {
 	if (m_iClip <= 0)
 	{
@@ -117,7 +105,6 @@ void CGlock::GlockFire( float flSpread , float flCycleTime, BOOL fUseAutoAim )
 	}
 
 	m_iClip--;
-
 	m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
 
 	int flags;
@@ -128,68 +115,24 @@ void CGlock::GlockFire( float flSpread , float flCycleTime, BOOL fUseAutoAim )
 	flags = 0;
 #endif
 
-	// player "shoot" animation
+	PLAYBACK_EVENT(flags, m_pPlayer->edict(), m_usFireGlock1);
+
 	m_pPlayer->SetAnimation( PLAYER_ATTACK1 );
 
-	// silenced
-	if (pev->body == 1)
-	{
-		m_pPlayer->m_iWeaponVolume = QUIET_GUN_VOLUME;
-		m_pPlayer->m_iWeaponFlash = DIM_GUN_FLASH;
-	}
-	else
-	{
-		// non-silenced
-		m_pPlayer->m_iWeaponVolume = NORMAL_GUN_VOLUME;
-		m_pPlayer->m_iWeaponFlash = NORMAL_GUN_FLASH;
-	}
+	UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
 
-	Vector vecSrc	 = m_pPlayer->GetGunPosition( );
-	Vector vecAiming;
-	
-	if ( fUseAutoAim )
-	{
-		vecAiming = m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
-	}
-	else
-	{
-		vecAiming = gpGlobals->v_forward;
-	}
+	Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
 
-	Vector vecDir;
-	vecDir = m_pPlayer->FireBulletsPlayer( 1, vecSrc, vecAiming, Vector( flSpread, flSpread, flSpread ), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed );
+	m_pPlayer->FireBullets(1, m_pPlayer->GetGunPosition(), vecAiming, Vector(0.02, 0.02, 0.02), 8192, BULLET_PLAYER_9MM, 0, 0, m_pPlayer->pev);
 
-	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), fUseAutoAim ? m_usFireGlock1 : m_usFireGlock2, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, ( m_iClip == 0 ) ? 1 : 0, 0 );
-
-	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + flCycleTime;
-
-	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
-		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
-
+	m_flNextPrimaryAttack = m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.3f;
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
-
 void CGlock::Reload( void )
 {
-	if ( m_pPlayer->ammo_9mm <= 0 )
-		 return;
-
-	int iResult;
-
-	if (m_iClip == 0)
-		iResult = DefaultReload( 17, GLOCK_RELOAD, 1.5 );
-	else
-		iResult = DefaultReload( 17, GLOCK_RELOAD_NOT_EMPTY, 1.5 );
-
-	if (iResult)
-	{
-		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	}
+	DefaultReload( 12, GLOCK_RELOAD, 1.5 );
 }
-
-
 
 void CGlock::WeaponIdle( void )
 {
@@ -225,13 +168,6 @@ void CGlock::WeaponIdle( void )
 	}
 }
 
-
-
-
-
-
-
-
 class CGlockAmmo : public CBasePlayerAmmo
 {
 	void Spawn( void )
@@ -258,17 +194,4 @@ class CGlockAmmo : public CBasePlayerAmmo
 LINK_ENTITY_TO_CLASS( ammo_glockclip, CGlockAmmo );
 LINK_ENTITY_TO_CLASS( ammo_9mmclip, CGlockAmmo );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// ThrillEX Addition/Edit End

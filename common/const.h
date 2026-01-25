@@ -109,34 +109,54 @@
 #define EF_NOINTERP				32	// don't interpolate the next frame
 #define EF_LIGHT				64	// rocket flare glow sprite
 #define EF_NODRAW				128	// don't draw entity
+// ThrillEX Addition/Edit Start
+#define EF_FLASHLIGHT			256	// SERECKY JAN-24-26: New flashlight effect. Makes EF_DIMLIGHT useless.
+// ThrillEX Addition/Edit End
 
 // entity flags
 #define EFLAG_SLERP				1	// do studio interpolation of this entity
 		
-
 // ThrillEX Addition/Edit Start
 //SERECKY JAN-20-26: ThrillEX has custom temp entities. Make of that what you will...
 
-#define TEX_TE_EXPLOSION	0		// Explosion effect. Apperance is controlled by CVars.
+#define THRILLEX_EXPLOSION		0		// Explosion effect. Apperance is controlled by CVars.
+// Coord:	Origin.x, Origin.y, Origin.z
+// Byte:	Scale in 0.1s
+// Byte:	Shrapnel speed
+// Byte:	Sprite framerate
+// Short:	Explosion sprite index
+// Short:	Shrapnel model index
+// Byte:	Explosion flags.
+
+#define THRILLEX_SPARKS			1		// Implementation of HL-Alpha's TE_SPARKS
 // Coord:	Origin.x, Origin.y, Origin.z
 
-#define TEX_TE_SPARKS		1		// Implementation of HL-Alpha's TE_SPARKS
-// Coord:	Origin.x, Origin.y, Origin.z
-
-#define TEX_BOUNCE_SPARKS	2		// Bouncy Sparks that collide with the world.
+#define THRILLEX_BOUNCE_SPARKS	2		// Bouncy Sparks that collide with the world.
 // Coord:	Origin.x, Origin.y, Origin.z
 // Coord:	Dir.x, Dir.y, Dir.z
 // Byte:	Count
 // Byte:	Noise/Randomization
 // Byte:	Lifetime (In 0.1s)
 
-#define TEX_SMOKE			3		// Smoke Q-Particles.
+#define THRILLEX_SMOKE			3		// Smoke Q-Particles.
 // Origin:	Coord.x, Coord.y, Coord.z
 // Byte:	Width
 // Byte:	Height
 // Byte:	Count
 
-#define TEX_BLOOD			4		// Implementation of HL-Alpha's blood effect.
+#define THRILLEX_BLOOD			4		// Implementation of HL-Alpha's blood effect.
+// Coord:	Origin.x, Origin.y, Origin.z
+// Coord:	Dir.x, Dir.y, Dir.z
+// Byte:	Color
+// Byte:	Speed
+
+#define THRILLEX_BLOODSTREAM	5		// Implementation of HL-Alpha's blood effect.
+// Coord:	Origin.x, Origin.y, Origin.z
+// Coord:	Dir.x, Dir.y, Dir.z
+// Byte:	Color
+// Byte:	Speed
+
+#define THRILLEX_TRACER			6		// ThrillEX Tracer effect that can be controlled with CVars.
 
 // ThrillEX Addition/Edit End
 

@@ -65,6 +65,9 @@ void VectorAngles( const float *forward, float *angles );
 #include "r_studioint.h"
 #include "com_model.h"
 
+// ThrillEX Addition/Edit Start
+extern "C" void PM_FallSound(void);
+// ThrillEX Addition/Edit End
 extern engine_studio_api_t IEngineStudio;
 
 /*
@@ -117,23 +120,26 @@ float	v_idlescale;  // used by TFC for concussion grenade effect
 
 // ThrillEX Addition/Edit Start
 // SERECKY JAN-1-26: New CVars for stuff I find amusing
-cvar_t* cl_jitter_punch;
-cvar_t* cl_gunbob;
 
-cvar_t* cl_rollangle;
-cvar_t* cl_rollspeed;
-cvar_t* cl_cshift_mult;
+cvar_t	*v_jitter_punch;
+cvar_t	*v_fallpunch_style;
+cvar_t	*v_gunbob;
+cvar_t	*v_gunkick;
+
+cvar_t	*cl_rollangle;
+cvar_t	*cl_rollspeed;
+cvar_t	*gl_flashblend;
 
 // CVars that control Quake-Styled damage kicks.
-cvar_t*	v_kicktime;
-cvar_t*	v_kickroll;
-cvar_t*	v_kickpitch;
-cvar_t* cl_damage_kick;
+cvar_t	*v_kicktime;
+cvar_t	*v_kickroll;
+cvar_t	*v_kickpitch;
+cvar_t	*cl_damage_kick;
 
 float	v_dmg_time, v_dmg_roll, v_dmg_pitch;
 
 // SERECKY 1-17-26: Stuff for H.W Mode viewsize commands.
-cvar_t* scr_viewsize;
+cvar_t	*scr_viewsize;
 int		sb_lines, local_viewsize = 0;
 
 void SCR_CalcRefdef(struct ref_params_s* pparams);
@@ -372,6 +378,131 @@ void V_DriftPitch ( struct ref_params_s *pparams )
 	}
 }
 
+// ThrillEX Addition/Edit Start
+
+// This is some damage flash code that I got working in Half-Life...
+// - serecky 1/2/26
+
+/*
+==============================================================================
+						PALETTE FLASHES
+==============================================================================
+*/
+
+cshift_t	cshifts[NUM_CSHIFTS];	// color shifts for damage, powerups
+cshift_t	prev_cshifts[NUM_CSHIFTS];
+
+float		v_blend[4];		// rgba 0.0 - 1.0
+
+/*
+==================
+V_BonusFlash_f
+
+When you run over an item, the server sends this command
+==================
+*/
+
+void V_BonusFlash_f(void)
+{
+	cshifts[CSHIFT_BONUS].destcolor[0] = 215;
+	cshifts[CSHIFT_BONUS].destcolor[1] = 186;
+	cshifts[CSHIFT_BONUS].destcolor[2] = 69;
+	cshifts[CSHIFT_BONUS].percent = 50;
+}
+
+/*
+=============
+V_CalcBlend
+=============
+*/
+
+void V_CalcBlend(void)
+{
+	float	r, g, b, a, a2;
+	int		j;
+
+	r = 0;
+	g = 0;
+	b = 0;
+	a = 0;
+
+	for (j = 0; j < NUM_CSHIFTS; j++)
+	{
+		a2 = cshifts[j].percent * (1.0f / 255.0f);
+
+		if (!a2)
+			continue;
+
+		a = a + a2 * (1 - a);
+		a2 = a2 / a;
+
+		r = r * (1 - a2) + cshifts[j].destcolor[0] * a2;
+		g = g * (1 - a2) + cshifts[j].destcolor[1] * a2;
+		b = b * (1 - a2) + cshifts[j].destcolor[2] * a2;
+	}
+
+	v_blend[0] = r / 255.0;
+	v_blend[1] = g / 255.0;
+	v_blend[2] = b / 255.0;
+	v_blend[3] = a;
+
+	if (v_blend[3] > 1.0f)
+		v_blend[3] = 1.0f;
+	if (v_blend[3] < 0.0f)
+		v_blend[3] = 0.0f;
+}
+
+
+/*
+=============
+V_UpdatePalette
+=============
+*/
+
+void V_UpdatePalette (struct ref_params_s* pparams)
+{
+	int		i, j;
+	float	r,g,b,a;
+	
+	for (i=0 ; i<NUM_CSHIFTS ; i++)
+	{
+		if (cshifts[i].percent != prev_cshifts[i].percent)
+			prev_cshifts[i].percent = cshifts[i].percent;
+
+		for (j=0 ; j<3 ; j++)
+		{
+			if (cshifts[i].destcolor[j] != prev_cshifts[i].destcolor[j])
+				prev_cshifts[i].destcolor[j] = cshifts[i].destcolor[j];
+		}
+	}
+	
+// drop the damage value
+	cshifts[CSHIFT_DAMAGE].percent -= pparams->frametime*150;
+	if (cshifts[CSHIFT_DAMAGE].percent <= 0)
+		cshifts[CSHIFT_DAMAGE].percent = 0;
+
+// drop the bonus value
+	cshifts[CSHIFT_BONUS].percent -= pparams->frametime*100;
+	if (cshifts[CSHIFT_BONUS].percent <= 0)
+		cshifts[CSHIFT_BONUS].percent = 0;
+
+	V_CalcBlend ();
+
+	a = v_blend[3];
+	r = 255*v_blend[0]*a;
+	g = 255*v_blend[1]*a;
+	b = 255*v_blend[2]*a;
+
+	gHUD.m_GeneralHud.m_flScreenTint[0] = r;
+	gHUD.m_GeneralHud.m_flScreenTint[1] = g;
+	gHUD.m_GeneralHud.m_flScreenTint[2] = b;
+	gHUD.m_GeneralHud.m_flScreenTint[3] = a * 255.0f;
+
+	//gEngfuncs.pfnConsolePrint(va("r = %.2f  g = %.2f  b = %.2f  a = %.2f\n", r, g, b, a * 255));
+}
+
+// ThrillEX Addition/Edit End
+
 /* 
 ============================================================================== 
 						VIEW RENDERING 
@@ -436,9 +567,24 @@ void V_CalcViewRoll ( struct ref_params_s *pparams )
 
 	// ThrillEX Addition/Edit Start
 	side = V_CalcRoll ( viewentity->angles, pparams->simvel, cl_rollangle->value, cl_rollspeed->value );
-	// ThrillEX Addition/Edit End
-
+	
 	pparams->viewangles[ROLL] += side;
+
+	if (v_dmg_time > 0.0f)
+	{
+		if (cl_damage_kick->value == 1)
+		{
+			pparams->viewangles[ROLL] += v_dmg_time / v_kicktime->value * v_dmg_roll;
+			pparams->viewangles[PITCH] += v_dmg_time / v_kicktime->value * v_dmg_pitch;
+			v_dmg_time -= pparams->frametime;
+		}
+		else if (cl_damage_kick->value == 2)
+		{
+			ClientCmd(va("punch_x %d", -2));
+			v_dmg_time = 0.0f;
+		}
+	}
+	// ThrillEX Addition/Edit End
 
 	if ( pparams->health <= 0 && ( pparams->viewheight[2] != 0 ) )
 	{
@@ -449,6 +595,73 @@ void V_CalcViewRoll ( struct ref_params_s *pparams )
 	}
 }
 
+/*
+==============
+V_CheckFalling
+
+Give players the appropiate view punches when falling down.
+Depends on the current "v_fallpunch_style" CVar value.
+
+0 - Half-Life Alpha 0.52
+1 - Half-Life 1.0
+
+==============
+*/
+
+#define PLAYER_FALL_PUNCH_THRESHHOLD (float)350
+#define PLAYER_FALL_PUNCH_THRESHHOLD_1 (float)300
+#define PLAYER_MAX_SAFE_FALL_SPEED	580// approx 20 feet
+
+static float flFallVelocity = 0.0f;
+
+void V_CheckFalling ( struct ref_params_s *pparams )
+{
+	cl_entity_t *ent;
+	ent = gEngfuncs.GetLocalPlayer();
+
+	float punch_x, punch_z;
+	float threshhold;
+
+	threshhold = (v_fallpunch_style->value == 1) ? PLAYER_FALL_PUNCH_THRESHHOLD : PLAYER_FALL_PUNCH_THRESHHOLD_1;
+
+	if ( !pparams->onground )
+		flFallVelocity = -pparams->simvel[2];
+
+	if ( pparams->waterlevel >= 2 )
+		return;
+
+	if ( ( pparams->onground ) && ( pparams->health >= 0 ) && ( flFallVelocity >= threshhold ) )
+	{
+		if (v_fallpunch_style->value == 1)
+		{
+			punch_x = min(flFallVelocity * 0.018f, 8.0f);
+			punch_z = flFallVelocity * 0.009f * gEngfuncs.pfnRandomLong(0, 1);
+			PM_FallSound();
+		}
+		else
+		{
+			punch_x = flFallVelocity * 0.018f;
+			punch_z = flFallVelocity * 0.009f;
+
+
+			if (flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED)
+			{
+				if (gEngfuncs.pfnRandomLong(0, 1))
+					gEngfuncs.pEventAPI->EV_PlaySound(ent->index, ent->origin, CHAN_VOICE, "player/pl_fallpain2.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
+				else
+					gEngfuncs.pEventAPI->EV_PlaySound(ent->index, ent->origin, CHAN_VOICE, "player/pl_fallpain3.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
+			}
+			else
+			{
+				gEngfuncs.pEventAPI->EV_PlaySound(ent->index, ent->origin, CHAN_VOICE, "player/pl_jumpland2.wav", 1.0, ATTN_NORM, 0, PITCH_NORM);
+			}
+		}
+
+		ClientCmd(va("punch_x %f", punch_x));
+		ClientCmd(va("punch_z %f", punch_z));
+		flFallVelocity = 0.0f;
+	}
+}
 
 /*
 ==================
@@ -690,13 +903,13 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 
 	// throw in a little tilt.
 	view->angles[YAW]   -= bob * 0.5;
-	if (cl_gunbob->value == 1)
+	if (v_gunbob->value == 1)
 		view->angles[ROLL] += bob * 1;
 	else
 		view->angles[ROLL] -= bob * 1;
 	view->angles[PITCH] -= bob * 0.3;
 
-	if (cl_gunbob->value)
+	if (v_gunbob->value)
 		VectorCopy( view->angles, view->curstate.angles );
 
 	// ThrillEX Addition/Edit End
@@ -743,10 +956,12 @@ void V_CalcNormalRefdef ( struct ref_params_s *pparams )
 	VectorCopy( pparams->punchangle, cl_punchangle);
 	VectorCopy( ev_punchangle, sv_punchangle);
 
-	// SERECKY JAN-1-26: If cl_jitter_punch is on, round the punch axises
+	// SERECKY JAN-1-26: If v_jitter_punch is on, round the punch axises
 	// into integers to emulate how Quake does it...
 
-	if (cl_jitter_punch->value)
+	V_CheckFalling( pparams );
+
+	if (v_jitter_punch->value)
 	{
 		for (i = 0; i < 3; i++)
 		{
@@ -1692,6 +1907,7 @@ void DLLEXPORT V_CalcRefdef( struct ref_params_s *pparams )
 	// ThrillEX Addition/Edit Start
 	if (IEngineStudio.IsHardware())
 		SCR_CalcRefdef(pparams);
+	V_UpdatePalette(pparams);
 	// ThrillEX Addition/Edit End
 }
 
@@ -1720,7 +1936,10 @@ Client side punch effect
 */
 void V_PunchAxis( int axis, float punch )
 {
-	ev_punchangle[ axis ] = punch;
+	// ThrillEX Addition/Edit Start
+	if (v_gunkick->value)
+		ev_punchangle[ axis ] = punch;
+	// ThrillEX Addition/Edit End
 }
 
 // ThrillEX Addition/Edit Start
@@ -1891,14 +2110,20 @@ void V_Init (void)
 
 	// SERECKY JAN-1-26: NEW
 
-	cl_jitter_punch		= gEngfuncs.pfnRegisterVariable( "cl_jitter_punch", "1", FCVAR_ARCHIVE );
-	cl_gunbob			= gEngfuncs.pfnRegisterVariable( "cl_gunbob", "1", FCVAR_ARCHIVE );
+	v_jitter_punch		= gEngfuncs.pfnRegisterVariable( "v_jitter_punch", "1", FCVAR_ARCHIVE );
+	v_gunbob			= gEngfuncs.pfnRegisterVariable( "v_gunbob", "1", FCVAR_ARCHIVE );
 
 	cl_rollspeed		= gEngfuncs.pfnRegisterVariable( "cl_rollspeed", "200", FCVAR_ARCHIVE );
 	cl_rollangle		= gEngfuncs.pfnRegisterVariable( "cl_rollangle", "2.0", FCVAR_ARCHIVE );
 
 	cl_damage_kick		= gEngfuncs.pfnRegisterVariable( "cl_damage_kick", "1", FCVAR_ARCHIVE );
-	cl_cshift_mult		= gEngfuncs.pfnRegisterVariable( "cl_cshift_mult", "2.0", FCVAR_ARCHIVE );
+	v_fallpunch_style	= gEngfuncs.pfnRegisterVariable( "v_fallpunch_style", "0", FCVAR_ARCHIVE );
+	v_gunkick			= gEngfuncs.pfnRegisterVariable( "v_gunkick", "1", FCVAR_ARCHIVE );
+
+	gl_flashblend		= gEngfuncs.pfnGetCvarPointer( "gl_flashblend" );
+
+	if (!gl_flashblend)
+		gl_flashblend		= gEngfuncs.pfnRegisterVariable( "gl_flashblend", "0", FCVAR_ARCHIVE );
 
 	// ThrillEX Addition/Edit End
 

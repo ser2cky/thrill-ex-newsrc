@@ -98,6 +98,9 @@ public:
 	// Process movement of player
 	virtual void StudioProcessGait ( entity_state_t *pplayer );
 
+	// SERECKY JAN-18-26: Quake as fuck!!!
+	virtual int StudioCanLerp( void );
+
 public:
 
 	// Client clock
@@ -121,6 +124,9 @@ public:
 	cvar_t			*m_pCvarDeveloper;
 	// Draw entities bone hit boxes, etc?
 	cvar_t			*m_pCvarDrawEntities;
+
+	// SERECKY JAN-18-26: Interpolate models anims?
+	cvar_t			*m_pCvarLerpModels;
 
 	// The entity which we are currently rendering.
 	cl_entity_t		*m_pCurrentEntity;		

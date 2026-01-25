@@ -26,6 +26,11 @@
 #include "pm_shared.h"
 
 #define IS_FIRSTPERSON_SPEC ( g_iUser1 == OBS_IN_EYE || (g_iUser1 && (gHUD.m_Spectator.m_pip->value == INSET_IN_EYE)) )
+
+// ThrillEX Addition/Edit Start
+extern void R_TracerEffect(vec3_t start, vec3_t end);
+// ThrillEX Addition/Edit End
+
 /*
 =================
 GetEntity
@@ -59,7 +64,9 @@ Creates a tracer effect
 */
 void EV_CreateTracer( float *start, float *end )
 {
-	gEngfuncs.pEfxAPI->R_TracerEffect( start, end );
+	// ThrillEX Addition/Edit Start
+	R_TracerEffect( start, end );
+	// ThrillEX Addition/Edit End
 }
 
 /*

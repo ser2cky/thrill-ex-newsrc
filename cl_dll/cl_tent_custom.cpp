@@ -20,6 +20,16 @@
 //	JAN-20-26: Improved smoke, added blood & bloodstream,
 //	cl_explosion_style CVar, custom temp-ent usermsg
 //
+//	JAN-23-26: Added InitParticleInfo function so
+//	creating new particle info. with zero'd out values
+//	is less time-consuming.
+// 
+//	JAN-24-26: Added CL_RenderEntityFX to deal with
+//	custom entity effects since we're giving the
+//	effects field a few more bits to work with...
+//	Also re-implemented cl_flashlight_style, and
+//	S.W mode particle tracers from the Alpha...
+// 
 //=======================================
 
 #include "hud.h"
@@ -30,6 +40,9 @@
 
 #include "pm_defs.h"
 #include "pmtrace.h"
+#include "event_api.h"
+#include "entity_state.h"
+#include "cl_entity.h"
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
@@ -44,14 +57,32 @@ int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf);
 //	stuff.
 //===============================
 
-cvar_t* cl_explosion_style;
+cvar_t	*cl_explosion_style;
+cvar_t	*cl_flashlight_style;
+cvar_t	*tracer_style;
+cvar_t	*tracerSpeed = NULL;
+cvar_t	*tracerOffset = NULL;
 
 void CustomTent_Init(void)
 {
 	HOOK_MESSAGE(TempEntity);
 
-	cl_explosion_style = CVAR_CREATE( "cl_explosion_style", "1", FCVAR_ARCHIVE );
-	// 0 = Sprite only, 1 = Sprite & Shrapnel, 2 = Shrapnel only
+	// 0 = Sprite, 1 = Shrapnel, 2 = Sprite & Shrapnel
+	cl_explosion_style		= CVAR_CREATE( "cl_explosion_style", "2", FCVAR_ARCHIVE );
+	cl_flashlight_style		= CVAR_CREATE( "cl_flashlight_style", "0", FCVAR_ARCHIVE );
+	tracer_style			= CVAR_CREATE( "tracer_style", "0", FCVAR_ARCHIVE );
+	
+	// SERECKY JAN-25-26: Evil hack to override default tracer properties.
+	gEngfuncs.Cvar_SetValue( "tracerspeed", 3000 );
+	gEngfuncs.Cvar_SetValue( "traceroffset", 35 );
+	gEngfuncs.Cvar_SetValue( "tracerlength", 1.0 );
+	gEngfuncs.Cvar_SetValue( "tracerred", 0.6 );
+	gEngfuncs.Cvar_SetValue( "tracergreen", 0.8 );
+	gEngfuncs.Cvar_SetValue( "tracerblue", 0.1 );
+	gEngfuncs.Cvar_SetValue( "traceralpha", 0.2 );
+
+	tracerSpeed = gEngfuncs.pfnGetCvarPointer("tracerspeed");
+	tracerOffset = gEngfuncs.pfnGetCvarPointer("traceroffset");
 }
 
 //===============================
@@ -72,9 +103,10 @@ typedef struct cpart_s
 	float	time_mult;
 	float	ramp_mult;
 	int		flags;
-	vec3_t	old_org;
 	vec3_t	accel;
 	ctype_t type;
+
+	vec3_t	old_org; // don't touch
 } cpart_t;
 
 #define CPART_COLLIDE_STICKY	(1 << 0)
@@ -171,6 +203,20 @@ void ParticleThink(struct particle_s* p, struct cpart_s* pvars, float frametime)
 }
 
 //===============================
+//	InitParticleInfo
+//	reset particle info back to defaults
+//===============================
+
+void InitParticleInfo(cpart_t* p)
+{
+	p->bounce_factor = 0.0f;
+	p->time_mult = 0.0f;
+	p->ramp_mult = 0.0f;
+	p->flags = 0;
+	p->type = ct_static;
+}
+
+//===============================
 //	R_BasicParticleSparks
 //	Render Half-Life Alpha styled particles.
 //===============================
@@ -178,6 +224,8 @@ void ParticleThink(struct particle_s* p, struct cpart_s* pvars, float frametime)
 void R_SparksCallback(struct particle_s* particle, float frametime)
 {
 	cpart_t pInfo;
+	InitParticleInfo(&pInfo);
+
 	pInfo.type = ct_sparks;
 	pInfo.accel = { 0.0f, 0.0f, -160.0f };
 
@@ -197,7 +245,10 @@ void R_ParticleSparks(vec3_t org)
 			return;
 
 		for ( j = 0; j < 3; j++ )
+		{
 			p->org[j] = org[j];
+			p->vel[j] = gEngfuncs.pfnRandomFloat(-16.0, 15.0);
+		}
 
 		p->vel[2] = gEngfuncs.pfnRandomFloat(0.0f, 64.0f);
 		p->ramp = 0.0;
@@ -218,6 +269,8 @@ void R_ParticleSparks(vec3_t org)
 void R_BouncySparksCallback(struct particle_s* particle, float frametime)
 {
 	cpart_t pInfo;
+	InitParticleInfo(&pInfo);
+
 	pInfo.type = ct_sparks;
 	pInfo.flags = CPART_COLLIDE_BOUNCY;
 	pInfo.accel = { 0.0f, 0.0f, -400.0f };
@@ -264,6 +317,8 @@ void R_BouncySparks(vec3_t org, vec3_t dir, int count, int noise, float lifetime
 void R_SmokeCallBack(struct particle_s* particle, float frametime)
 {
 	cpart_t pInfo;
+	InitParticleInfo(&pInfo);
+
 	pInfo.type = ct_smoke;
 	pInfo.accel = { 0.0f, 0.0f, -10.0f };
 	pInfo.time_mult = 8.0f;
@@ -291,11 +346,12 @@ void R_RenderSmoke(vec3_t org, float scale, float vert_scale, int count)
 
 		for (j = 0; j < 3; j++)
 			smoke->org[j] = org[j];
+
 		intensity += (1.0f / (float)count );
 
 		smoke->vel[0] = gEngfuncs.pfnRandomFloat(-scale, scale) * min(intensity * 2, 1.0f);
 		smoke->vel[1] = gEngfuncs.pfnRandomFloat(-scale, scale) * min(intensity * 2, 1.0f);
-		smoke->vel[2] = vert_scale * intensity;
+		smoke->vel[2] = (vert_scale * intensity) + 30.0f;
 
 		if (gEngfuncs.pfnRandomLong(0, 1) == 1)
 			color_rand = 24;
@@ -322,7 +378,9 @@ void R_RenderSmoke(vec3_t org, float scale, float vert_scale, int count)
 void R_StickyBloodCallback(struct particle_s* particle, float frametime)
 {
 	cpart_t pInfo;
-	pInfo.accel = { 0.0f, 0.0f, -40.0f };
+	InitParticleInfo(&pInfo);
+
+	pInfo.accel = { 0.0f, 0.0f, -160.0f };
 	pInfo.flags = CPART_COLLIDE_BOUNCY;
 	pInfo.bounce_factor = 0.5f;
 
@@ -332,7 +390,9 @@ void R_StickyBloodCallback(struct particle_s* particle, float frametime)
 void R_NormalBloodCallback(struct particle_s* particle, float frametime)
 {
 	cpart_t pInfo;
-	pInfo.accel = { 0.0f, 0.0f, -40.0f };
+	InitParticleInfo(&pInfo);
+
+	pInfo.accel = { 0.0f, 0.0f, -160.0f };
 	pInfo.flags = 0;
 	pInfo.bounce_factor = 0.5f;
 
@@ -365,7 +425,7 @@ void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed)
 		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 
 		p->type = pt_clientcustom;
-		if (gEngfuncs.pfnRandomLong(0, 4) <= 1)
+		if (gEngfuncs.pfnRandomLong(0, 24) == 0)
 			p->callback = R_StickyBloodCallback;
 		else
 			p->callback = R_NormalBloodCallback;
@@ -393,7 +453,7 @@ void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed)
 		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 
 		p->type = pt_clientcustom;
-		if (gEngfuncs.pfnRandomLong(0, 4) <= 1)
+		if (gEngfuncs.pfnRandomLong(0, 24) == 0)
 			p->callback = R_StickyBloodCallback;
 		else
 			p->callback = R_NormalBloodCallback;
@@ -423,7 +483,7 @@ void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed)
 			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 
 			p->type = pt_clientcustom;
-			if (gEngfuncs.pfnRandomLong(0, 4) <= 1)
+			if (gEngfuncs.pfnRandomLong(0, 24) == 0)
 				p->callback = R_StickyBloodCallback;
 			else
 				p->callback = R_NormalBloodCallback;
@@ -446,6 +506,30 @@ void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed)
 //	HL-Alpha R_Blood particle effect with a 25% chance
 //	to collide with the world for that PIZAZ!!!
 //===============================
+
+void R_StickyBlood1Callback(struct particle_s* particle, float frametime)
+{
+	cpart_t pInfo;
+	InitParticleInfo(&pInfo);
+
+	pInfo.accel = { 0.0f, 0.0f, -320.0f };
+	pInfo.flags = CPART_COLLIDE_BOUNCY;
+	pInfo.bounce_factor = 0.5f;
+
+	ParticleThink(particle, &pInfo, frametime);
+}
+
+void R_NormalBlood1Callback(struct particle_s* particle, float frametime)
+{
+	cpart_t pInfo;
+	InitParticleInfo(&pInfo);
+
+	pInfo.accel = { 0.0f, 0.0f, -320.0f };
+	pInfo.flags = 0;
+	pInfo.bounce_factor = 0.5f;
+
+	ParticleThink(particle, &pInfo, frametime);
+}
 
 void R_Blood(vec_t* org, vec_t* dir, int pcolor, int speed)
 {
@@ -480,10 +564,10 @@ void R_Blood(vec_t* org, vec_t* dir, int pcolor, int speed)
 				return;
 
 			p->type = pt_clientcustom;
-			if (gEngfuncs.pfnRandomLong(0, 4) <= 1)
-				p->callback = R_StickyBloodCallback;
+			if (gEngfuncs.pfnRandomLong(0, 24) == 0)
+				p->callback = R_StickyBlood1Callback;
 			else
-				p->callback = R_NormalBloodCallback;
+				p->callback = R_NormalBlood1Callback;
 
 			p->die = gEngfuncs.GetClientTime() + 1.5;
 			p->color = pcolor + gEngfuncs.pfnRandomFloat(0, 9);
@@ -501,17 +585,97 @@ void R_Blood(vec_t* org, vec_t* dir, int pcolor, int speed)
 }
 
 //===============================
-//	R_Blood
-//	Half-Life Alpha styled explosion effect. Can be
-//	controlled using the "cl_explosion_style" CVar.
+//	R_Explosion
+//	Half-Life Alpha styled explosion effect made simple. 
+//	Can be controlled using the "cl_explosion_style" CVar.
+//===============================
+
+void R_Explosion(vec3_t org, int scale, int framerate, int speed, int sprite, int model, int flags)
+{
+	if (cl_explosion_style->value == 0 || cl_explosion_style->value == 2)
+	{
+		TEMPENTITY* explosion = gEngfuncs.pEfxAPI->R_DefaultSprite(org, sprite, framerate);
+		gEngfuncs.pEfxAPI->R_Sprite_Explode(explosion, scale, 0);
+	}
+
+	if (cl_explosion_style->value == 1 || cl_explosion_style->value == 2)
+		gEngfuncs.pEfxAPI->R_TempSphereModel(org, 400.0f, 1.5f, 30, model);
+
+	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
+	VectorCopy(org, dl->origin);
+
+	// SERECKY JAN-24-26: Thanks SanyaSho for  the exact
+	// alpha explosion DLIGHT properties!!!
+
+	dl->radius = 250.0f;
+	dl->color.r = 250; // -6
+	dl->color.g = 250; // -6
+	dl->color.b = 150; // -106
+	dl->die = gEngfuncs.GetClientTime() + 0.05f; // 0.5f??
+	dl->decay = 800.0f;
+
+	gEngfuncs.pEventAPI->EV_PlaySound(-1, org, CHAN_AUTO, va("weapons/explode%d.wav", gEngfuncs.pfnRandomLong(3, 5)), 1.0f, 0.3f, 0, PITCH_NORM);
+}
+
+//===============================
+//	R_TracerEffect
+//	Tracer effect that can be controlled w/ CVars
+//===============================
+
+void R_TracerEffect(vec3_t start, vec3_t end)
+{
+	particle_t* p;
+	vec3_t	temp, vel;
+	float	len;
+
+	// Return if we're using regular tracers.
+	if (!tracer_style->value)
+	{
+		gEngfuncs.pEfxAPI->R_TracerEffect(start, end);
+		return;
+	}
+
+	if (tracerSpeed->value <= 0)
+		tracerSpeed->value = 3;
+
+	VectorSubtract(end, start, temp);
+	len = Length(temp);
+
+	VectorScale(temp, 1.0 / len, temp);
+	VectorScale(temp, gEngfuncs.pfnRandomLong(-10, 9) + tracerOffset->value, vel);
+	VectorAdd(start, vel, start);
+
+	// SERECKY JAN-15-26: particle tracers seem to go at 1/4th the
+	// speed for some weird reason...
+	VectorScale(temp, tracerSpeed->value * 0.25f, vel);
+
+	p = gEngfuncs.pEfxAPI->R_AllocParticle( NULL );
+
+	if (!p)
+		return;
+
+	VectorCopy( start, p->org );
+	VectorCopy( vel, p->vel );
+
+	p->type = pt_static;
+	p->color = 109;
+	gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
+	p->die = gEngfuncs.GetClientTime() + (len / (tracerSpeed->value * 0.25f));
+}
+
+//===============================
+//	__MsgFunc_TempEntity
+//	custom tempentity message
 //===============================
 
 int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf)
 {
 	vec3_t org, dir;
 	int type, count, speed, color;
-	int width, height;
-	int ltime, noise;
+	int width, height, scale;
+	int ltime, noise, flags;
+	int modelindex1, modelindex2;
+	int framerate;
 
 	BEGIN_READ(pbuf, iSize);
 
@@ -519,55 +683,101 @@ int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf)
 
 	switch (type)
 	{
-		case TEX_TE_EXPLOSION:
+		case THRILLEX_EXPLOSION:
 		{
 			org[0] = READ_COORD();
 			org[1] = READ_COORD();
 			org[2] = READ_COORD();
+			scale = READ_BYTE() * 0.1f;
+			speed = READ_BYTE();
+			framerate = READ_BYTE();
+			modelindex1 = READ_SHORT();
+			modelindex2 = READ_SHORT();
+			flags = READ_BYTE();
+
+			R_Explosion(org, scale, framerate, speed, modelindex1, modelindex2, flags);
 			break;
 		}
 
-		case TEX_TE_SPARKS:
+		case THRILLEX_SPARKS:
 		{
 			org[0] = READ_COORD();
 			org[1] = READ_COORD();
 			org[2] = READ_COORD();
+
 			R_ParticleSparks(org);
 			break;
 		}
 
-		case TEX_BOUNCE_SPARKS:
+		case THRILLEX_BOUNCE_SPARKS:
 		{
 			org[0] = READ_COORD();
 			org[1] = READ_COORD();
 			org[2] = READ_COORD();
-
 			dir[0] = READ_COORD();
 			dir[1] = READ_COORD();
 			dir[2] = READ_COORD();
-
 			count = READ_BYTE();
 			noise = READ_BYTE();
 			ltime = READ_BYTE();
+
 			R_BouncySparks(org, dir, count, noise, ltime);
 			break;
 		}
 
-		case TEX_SMOKE:
+		case THRILLEX_SMOKE:
 		{
 			org[0] = READ_COORD();
 			org[1] = READ_COORD();
 			org[2] = READ_COORD();
-
 			width = READ_BYTE();
 			height = READ_BYTE();
 			count = READ_BYTE();
+
 			R_RenderSmoke(org, width, height, count);
 			break;
 		}
 
-		case TEX_BLOOD:
+		case THRILLEX_BLOOD:
 		{
+			org[0] = READ_COORD();
+			org[1] = READ_COORD();
+			org[2] = READ_COORD();
+			dir[0] = READ_COORD();
+			dir[1] = READ_COORD();
+			dir[2] = READ_COORD();
+			color = READ_BYTE();
+			speed = READ_BYTE();
+
+			R_Blood(org, dir, color, speed);
+			break;
+		}
+
+		case THRILLEX_BLOODSTREAM:
+		{
+			org[0] = READ_COORD();
+			org[1] = READ_COORD();
+			org[2] = READ_COORD();
+			dir[0] = READ_COORD();
+			dir[1] = READ_COORD();
+			dir[2] = READ_COORD();
+			color = READ_BYTE();
+			speed = READ_BYTE();
+
+			R_BloodStream(org, dir, color, speed);
+			break;
+		}
+
+		case THRILLEX_TRACER:
+		{
+			org[0] = READ_COORD();
+			org[1] = READ_COORD();
+			org[2] = READ_COORD();
+			dir[0] = READ_COORD();
+			dir[1] = READ_COORD();
+			dir[2] = READ_COORD();
+
+			R_TracerEffect(org, dir);
 			break;
 		}
 
@@ -579,4 +789,91 @@ int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf)
 	}
 
 	return 1;
+}
+
+//===============================
+//	CL_RenderEntityFX
+//	Handle THRILLEX's newly added pev->effects!!!
+//===============================
+
+#define FLASHLIGHT_DISTANCE		2000
+
+void CL_RenderEntityFX(cl_entity_t* ent)
+{
+	dlight_t *dl, *dl_1;
+
+	switch (ent->curstate.effects)
+	{
+		case EF_FLASHLIGHT:
+		{
+			if ( ( cl_flashlight_style->value == 0 ) || ( cl_flashlight_style->value == 2 ) )
+			{
+				dl_1 = gEngfuncs.pEfxAPI->CL_AllocDlight(2);
+
+				pmtrace_t tr;
+				physent_t *pe;
+				float falloff;
+
+				vec3_t view_ofs, end;
+				vec3_t angles, forward;
+
+				// Basic setup for all the start & end stuff...
+				gEngfuncs.GetViewAngles( (float *)angles );
+				AngleVectors ( angles, forward, NULL, NULL );
+
+				gEngfuncs.pEventAPI->EV_LocalPlayerViewheight( view_ofs );
+
+				VectorCopy(ent->origin, dl_1->origin);
+				VectorAdd(dl_1->origin, view_ofs, dl_1->origin);
+
+				VectorMA(dl_1->origin, FLASHLIGHT_DISTANCE, forward, end);
+
+				// Boring traceline stuff...
+				gEngfuncs.pEventAPI->EV_SetUpPlayerPrediction( false, true );
+
+				gEngfuncs.pEventAPI->EV_PushPMStates();
+
+				gEngfuncs.pEventAPI->EV_SetSolidPlayers ( ent->index - 1 );	
+
+				gEngfuncs.pEventAPI->EV_SetTraceHull( 2 );
+
+				gEngfuncs.pEventAPI->EV_PlayerTrace( dl_1->origin, end, PM_STUDIO_BOX, -1, &tr );
+
+				if (tr.ent > 0)
+				{
+					pe = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent );
+
+					if (pe->studiomodel != NULL)
+						VectorCopy(pe->origin, tr.endpos);
+				}
+
+				VectorCopy(tr.endpos, dl_1->origin);
+				falloff = tr.fraction * FLASHLIGHT_DISTANCE;
+
+				if (falloff < 500)
+					falloff = 1.0;
+				else
+					falloff = 500.0 / (falloff);
+			
+				falloff *= falloff;
+
+				dl_1->radius = 80;
+				dl_1->color.r = dl_1->color.g = dl_1->color.b = 255 * falloff;
+				dl_1->die = gEngfuncs.GetClientTime() + 0.2f;
+				dl_1->decay = 2048;
+
+				gEngfuncs.pEventAPI->EV_PopPMStates();
+			}
+
+			if ( cl_flashlight_style->value >= 1 )
+			{
+				dl = gEngfuncs.pEfxAPI->CL_AllocDlight(1);
+				VectorCopy(ent->origin, dl->origin);
+				dl->radius = 200 + (rand() & 31);
+				dl->color.r = dl->color.g = dl->color.b = 255;
+				dl->die = gEngfuncs.GetClientTime() + 0.001;
+			}
+			break;
+		}
+	}
 }

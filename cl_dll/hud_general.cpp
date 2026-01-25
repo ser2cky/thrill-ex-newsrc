@@ -138,7 +138,8 @@ int CHudGeneral::VidInit(void)
 	m_gHUD_divider[0]		= gHUD.GetSpriteIndex("Hud1_Divider");
 	m_gHUD_divider[1]		= gHUD.GetSpriteIndex("Hud2_Divider");
 
-	m_rcBatFull				= &gHUD.GetSpriteRect(m_gHUD_battery_full[0]);
+	m_rcBatFull[0]				= &gHUD.GetSpriteRect(m_gHUD_battery_full[0]);
+	m_rcBatFull[1]				= &gHUD.GetSpriteRect(m_gHUD_battery_full[1]);
 
 	m_iBatWidth = gHUD.GetSpriteRect(m_gHUD_battery_empty[0]).right - gHUD.GetSpriteRect(m_gHUD_battery_empty[0]).left;
 	m_iBatHeight = gHUD.GetSpriteRect(m_gHUD_battery_empty[0]).bottom - gHUD.GetSpriteRect(m_gHUD_battery_empty[0]).top;
@@ -746,7 +747,7 @@ void CHudGeneral::DrawGreenHud(void)
 
 	wrect_t rc;
 
-	rc = *m_rcBatFull;
+	rc = *m_rcBatFull[iBat];
 	rc.right  -= m_iBatWidth * ((float)(100-(min(100,gHUD.m_Health.m_iBat))) * 0.01);	// battery can go from 0 to 100 so * 0.01 goes from 0 to 1
 
 	// Health display.

@@ -28,6 +28,10 @@ extern vec3_t v_origin;
 
 int g_iAlive = 1;
 
+// ThrillEX Addition/Edit Start
+extern void CL_RenderEntityFX(cl_entity_t* ent);
+// ThrillEX Addition/Edit End
+
 extern "C" 
 {
 	int DLLEXPORT HUD_AddEntity( int type, struct cl_entity_s *ent, const char *modelname );
@@ -58,6 +62,11 @@ int DLLEXPORT HUD_AddEntity( int type, struct cl_entity_s *ent, const char *mode
 	default:
 		break;
 	}
+
+	// ThrillEX Addition/Edit Start
+	CL_RenderEntityFX(ent);
+	// ThrillEX Addition/Edit End
+
 	// each frame every entity passes this function, so the overview hooks it to filter the overview entities
 	// in spectator mode:
 	// each frame every entity passes this function, so the overview hooks 
@@ -153,6 +162,7 @@ void DLLEXPORT HUD_ProcessPlayerState( struct entity_state_s *dst, const struct 
 
 	// Save off some data so other areas of the Client DLL can get to it
 	cl_entity_t *player = gEngfuncs.GetLocalPlayer();	// Get the local player's index
+
 	if ( dst->number == player->index )
 	{
 		g_iPlayerClass = dst->playerclass;
@@ -161,6 +171,10 @@ void DLLEXPORT HUD_ProcessPlayerState( struct entity_state_s *dst, const struct 
 		g_iUser1 = src->iuser1;
 		g_iUser2 = src->iuser2;
 		g_iUser3 = src->iuser3;
+
+		// ThrillEX Addition/Edit Start
+		CL_RenderEntityFX(player);
+		// ThrillEX Addition/Edit End
 	}
 }
 

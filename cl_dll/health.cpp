@@ -28,6 +28,16 @@
 #include <string.h>
 
 // ThrillEX Addition/Edit Start
+#include "screenfade.h"
+
+extern cvar_t*	v_kicktime;
+extern cvar_t*	v_kickroll;
+extern cvar_t*	v_kickpitch;
+cvar_t *cl_dmgfade;
+
+extern cshift_t	cshifts[];
+extern float	v_dmg_time, v_dmg_roll, v_dmg_pitch;
+
 DECLARE_MESSAGE( m_Health, Health )
 DECLARE_MESSAGE( m_Health, Damage )
 DECLARE_MESSAGE( m_Health, Battery )
@@ -60,9 +70,12 @@ int CHudHealth::Init(void)
 	HOOK_MESSAGE(Health);
 	HOOK_MESSAGE(Battery);
 	HOOK_MESSAGE(Damage);
-	// ThrillEX Addition/Edit End
 	m_iHealth = 100;
 	m_iBat = 0;
+
+	cl_dmgfade = CVAR_CREATE("hud_dmgfade", "1", FCVAR_ARCHIVE);
+
+	// ThrillEX Addition/Edit End
 	m_fFade = 0;
 	m_iFlags = 0;
 	m_bitsDamage = 0;
@@ -140,23 +153,94 @@ int CHudHealth::MsgFunc_Battery(const char *pszName,  int iSize, void *pbuf)
 
 int CHudHealth:: MsgFunc_Damage(const char *pszName,  int iSize, void *pbuf )
 {
+	// ThrillEX Addition/Edit Start
 	BEGIN_READ( pbuf, iSize );
 
-	int armor = READ_BYTE();	// armor
-	int damageTaken = READ_BYTE();	// health
-	long bitsDamage = READ_LONG(); // damage bits
+	int		armor, blood;
+	Vector	from;
+	int		i;
+	float	count;
+	long	bitsDamage;
 
-	vec3_t vecFrom;
+	BEGIN_READ(pbuf, iSize);
+	armor = READ_BYTE();
+	blood = READ_BYTE();
+	bitsDamage = READ_LONG();
 
-	for ( int i = 0 ; i < 3 ; i++)
-		vecFrom[i] = READ_COORD();
+	for (i = 0; i < 3; i++)
+		from[i] = READ_COORD();
+
+	count = (blood * 0.5f) + (armor * 0.5f);
+
+	if (count < 10)
+		count = 10;
+
+	cl_entity_t *ent = gEngfuncs.GetViewModel();
+
+	if (ent)
+	{
+		vec3_t forward, right, up;
+		float side;
+
+		VectorSubtract(from, ent->origin, from);
+		VectorNormalize(from);
+
+		AngleVectors(ent->angles, forward, right, up);
+
+		side = DotProduct(from, right);
+		v_dmg_roll = count * side * v_kickroll->value;
+
+		side = DotProduct(from, forward);
+		v_dmg_pitch = count * side * v_kickpitch->value;
+
+		if ( blood > 0 || armor > 0 )
+			v_dmg_time = v_kicktime->value;
+	}
 
 	UpdateTiles(gHUD.m_flTime, bitsDamage);
 
 	// Actually took damage?
-	if ( damageTaken > 0 || armor > 0 )
-		CalcDamageDirection(vecFrom);
 
+	if ( blood > 0 || armor > 0 )
+	{
+		CalcDamageDirection(from);
+		
+		// SERECKY JAN-18-26: NEW!!!
+		gHUD.m_GeneralHud.m_flFacePainTime = gHUD.m_flTime + 0.2f;
+
+		if ( (cl_dmgfade->value != 0) )
+		{
+			cshifts[CSHIFT_DAMAGE].percent += 3 * count;
+			if (cshifts[CSHIFT_DAMAGE].percent < 0)
+				cshifts[CSHIFT_DAMAGE].percent = 0;
+			if (cshifts[CSHIFT_DAMAGE].percent > 150)
+				cshifts[CSHIFT_DAMAGE].percent = 150;
+
+			if (armor > blood)
+			{
+				cshifts[CSHIFT_DAMAGE].destcolor[0] = 200;
+				cshifts[CSHIFT_DAMAGE].destcolor[1] = 100;
+				cshifts[CSHIFT_DAMAGE].destcolor[2] = 100;
+			}
+			else if (armor)
+			{
+				cshifts[CSHIFT_DAMAGE].destcolor[0] = 220;
+				cshifts[CSHIFT_DAMAGE].destcolor[1] = 50;
+				cshifts[CSHIFT_DAMAGE].destcolor[2] = 50;
+			}
+			else
+			{
+				cshifts[CSHIFT_DAMAGE].destcolor[0] = 255;
+				cshifts[CSHIFT_DAMAGE].destcolor[1] = 0;
+				cshifts[CSHIFT_DAMAGE].destcolor[2] = 0;
+			}
+		}
+		else
+		{
+			cshifts[CSHIFT_DAMAGE].percent = 0;
+		}
+	}
+	// ThrillEX Addition/Edit End
 	return 1;
 }
 

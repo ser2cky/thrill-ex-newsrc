@@ -438,6 +438,32 @@ void ClientCommand( edict_t *pEntity )
 		edict_t *pentSpawnSpot = g_pGameRules->GetPlayerSpawnSpot( pPlayer );
 		pPlayer->StartObserver( pev->origin, VARS(pentSpawnSpot)->angles);
 	}
+	// ThrillEX Addition/Edit Start
+	else if ( FStrEq( pcmd, "punch_x" ) )
+	{
+		CBasePlayer* pPlayer = GetClassPtr((CBasePlayer*)pev);
+		if ( CMD_ARGC() > 1 )
+			pPlayer->pev->punchangle.x = atoi(CMD_ARGV(1));
+		else
+			CLIENT_PRINTF( pEntity, print_console, "usage: punch_x x - x being any number\n" );
+	}
+	else if ( FStrEq( pcmd, "punch_y" ) )
+	{
+		CBasePlayer* pPlayer = GetClassPtr((CBasePlayer*)pev);
+		if ( CMD_ARGC() > 1 )
+			pPlayer->pev->punchangle.y = atoi(CMD_ARGV(1));
+		else
+			CLIENT_PRINTF( pEntity, print_console, "usage: punch_y x - x being any number\n" );
+	}
+	else if ( FStrEq( pcmd, "punch_z" ) )
+	{
+		CBasePlayer* pPlayer = GetClassPtr((CBasePlayer*)pev);
+		if ( CMD_ARGC() > 1 )
+			pPlayer->pev->punchangle.z = atoi(CMD_ARGV(1));
+		else
+			CLIENT_PRINTF( pEntity, print_console, "usage: punch_z x - x being any number\n" );
+	}
+	// ThrillEX Addition/Edit End
 	else if ( g_pGameRules->ClientCommand( GetClassPtr((CBasePlayer *)pev), pcmd ) )
 	{
 		// MenuSelect returns true only if the command is properly handled,  so don't print a warning

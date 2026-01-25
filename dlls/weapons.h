@@ -56,19 +56,18 @@ public:
 };
 
 
+// ThrillEX Addition/Edit Start
+
 // constant items
 #define ITEM_HEALTHKIT		1
 #define ITEM_ANTIDOTE		2
 #define ITEM_SECURITY		3
 #define ITEM_BATTERY		4
-
-// ThrillEX Addition/Edit Start
 #define ITEM_ADRENALINE		5
 #define ITEM_RADIATION		6
 #define ITEM_SHIELD			7
 #define ITEM_CLOAK			8
 #define ITEM_LAST			9
-// ThrillEX Addition/Edit End
 
 #define WEAPON_NONE				0
 #define WEAPON_CROWBAR			1
@@ -86,23 +85,11 @@ public:
 #define WEAPON_TRIPMINE			13
 #define	WEAPON_SATCHEL			14
 #define	WEAPON_SNARK			15
-
-// ThrillEX Addition/Edit Start
 #define WEAPON_CHUB				16
-#define CHUB_WEIGHT				5
-#define CHUB_MAX_CARRY			5
-#define CHUB_DEFAULT_GIVE		1
-// ThrillEX Addition/Edit End
-
 #define WEAPON_ALLWEAPONS		(~(1<<WEAPON_SUIT))
-
 #define WEAPON_SUIT				31	// ?????
-
 #define MAX_WEAPONS			32
-
-
 #define MAX_NORMAL_BATTERY	100
-
 
 // weapon weight factors (for auto-switching)   (-1 = noswitch)
 #define CROWBAR_WEIGHT		0
@@ -119,7 +106,7 @@ public:
 #define SNARK_WEIGHT		5
 #define SATCHEL_WEIGHT		-10
 #define TRIPMINE_WEIGHT		-10
-
+#define CHUB_WEIGHT				5
 
 // weapon clip/carry ammo capacities
 #define URANIUM_MAX_CARRY		100
@@ -134,14 +121,13 @@ public:
 #define SNARK_MAX_CARRY			15
 #define HORNET_MAX_CARRY		8
 #define M203_GRENADE_MAX_CARRY	10
+#define CHUB_MAX_CARRY			5
 
 // the maximum amount of ammo each weapon's clip can hold
 #define WEAPON_NOCLIP			-1
-
-//#define CROWBAR_MAX_CLIP		WEAPON_NOCLIP
-#define GLOCK_MAX_CLIP			17
+#define GLOCK_MAX_CLIP			12
 #define PYTHON_MAX_CLIP			6
-#define MP5_MAX_CLIP			50
+#define MP5_MAX_CLIP			30
 #define MP5_DEFAULT_AMMO		25
 #define SHOTGUN_MAX_CLIP		8
 #define CROSSBOW_MAX_CLIP		5
@@ -153,7 +139,6 @@ public:
 #define SATCHEL_MAX_CLIP		WEAPON_NOCLIP
 #define TRIPMINE_MAX_CLIP		WEAPON_NOCLIP
 #define SNARK_MAX_CLIP			WEAPON_NOCLIP
-
 
 // the default amount of ammo that comes with each gun when it spawns
 #define GLOCK_DEFAULT_GIVE			17
@@ -171,6 +156,7 @@ public:
 #define TRIPMINE_DEFAULT_GIVE		1
 #define SNARK_DEFAULT_GIVE			5
 #define HIVEHAND_DEFAULT_GIVE		8
+#define CHUB_DEFAULT_GIVE		1
 
 // The amount of ammo given to a player by an ammo item.
 #define AMMO_URANIUMBOX_GIVE	20
@@ -185,6 +171,7 @@ public:
 #define AMMO_URANIUMBOX_GIVE	20
 #define AMMO_SNARKBOX_GIVE		5
 
+// ThrillEX Addition/Edit End
 
 
 // bullet types
@@ -384,7 +371,7 @@ public:
 	void EXPORT Materialize( void );
 };
 
-
+// ThrillEX Addition/Edit Start
 extern DLL_GLOBAL	short	g_sModelIndexLaser;// holds the index for the laser beam
 extern DLL_GLOBAL	const char *g_pModelNameLaser;
 
@@ -393,8 +380,8 @@ extern DLL_GLOBAL	short	g_sModelIndexFireball;// holds the index for the firebal
 extern DLL_GLOBAL	short	g_sModelIndexSmoke;// holds the index for the smoke cloud
 extern DLL_GLOBAL	short	g_sModelIndexWExplosion;// holds the index for the underwater explosion
 extern DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles model
-extern DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for blood drops
-extern DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for blood spray (bigger)
+extern DLL_GLOBAL	short	g_sModelIndexShrapnel;	// ModelIndex for shrapnel.
+// ThrillEX Addition/Edit End
 
 extern void ClearMultiDamage(void);
 extern void ApplyMultiDamage(entvars_t* pevInflictor, entvars_t* pevAttacker );
@@ -555,8 +542,6 @@ public:
 	int GetItemInfo(ItemInfo *p);
 
 	void PrimaryAttack( void );
-	void SecondaryAttack( void );
-	void GlockFire( float flSpread, float flCycleTime, BOOL fUseAutoAim );
 	BOOL Deploy( void );
 	void Reload( void );
 	void WeaponIdle( void );
@@ -572,10 +557,7 @@ public:
 
 private:
 	int m_iShell;
-	
-
 	unsigned short m_usFireGlock1;
-	unsigned short m_usFireGlock2;
 };
 
 

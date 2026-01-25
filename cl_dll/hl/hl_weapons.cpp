@@ -73,6 +73,23 @@ void AlertMessage( ALERT_TYPE atype, char *szFmt, ... )
 	gEngfuncs.Con_Printf( string );
 }
 
+// ThrillEX Addition/Edit Start
+
+void ALERT(ALERT_TYPE atype, char* szFmt, ...)
+{
+	va_list		argptr;
+	static char	string[1024];
+
+	va_start(argptr, szFmt);
+	vsprintf(string, szFmt, argptr);
+	va_end(argptr);
+
+	gEngfuncs.Con_Printf("cl:  ");
+	gEngfuncs.Con_Printf(string);
+}
+
+// ThrillEX Addition/Edit End
+
 void* PvAllocEntPrivateData( edict_t* pEdict, long cb )
 {
 	//Not quite the same as the engine's version, but good enough for what we need

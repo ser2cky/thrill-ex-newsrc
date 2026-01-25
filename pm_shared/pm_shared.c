@@ -113,6 +113,9 @@ typedef struct hull_s
 #define PLAYER_FALL_PUNCH_THRESHHOLD (float)350 // won't punch player's screen/make scrape noise unless player falling at least this fast.
 
 #define PLAYER_LONGJUMP_SPEED 350 // how fast we longjump
+// ThrillEX Addition/Edit Start
+#define	PLAYER_NOCLIP_MULTIPLIER 1.75
+// ThrillEX Addition/Edit End
 
 // double to float warning
 #pragma warning(disable : 4244)
@@ -2376,9 +2379,12 @@ void PM_NoClip()
 //	float		currentspeed, addspeed, accelspeed;
 
 	// Copy movement amounts
-	fmove = pmove->cmd.forwardmove;
-	smove = pmove->cmd.sidemove;
-	
+
+	// ThrillEX Addition/Edit Start
+	fmove = pmove->cmd.forwardmove * PLAYER_NOCLIP_MULTIPLIER;
+	smove = pmove->cmd.sidemove * PLAYER_NOCLIP_MULTIPLIER;
+	// ThrillEX Addition/Edit End
+
 	VectorNormalize ( pmove->forward ); 
 	VectorNormalize ( pmove->right );
 
@@ -2521,7 +2527,9 @@ void PM_Jump (void)
 	// In the air now.
     pmove->onground = -1;
 
-	PM_PreventMegaBunnyJumping();
+	// ThrillEX Addition/Edit Start
+	// PM_PreventMegaBunnyJumping();
+	// ThrillEX Addition/Edit End
 
 	if ( tfc )
 	{
@@ -2642,74 +2650,46 @@ void PM_CheckWaterJump (void)
 	pmove->usehull = savehull;
 }
 
+// ThrillEX Addition/Edit Start
 void PM_CheckFalling( void )
 {
-	if ( pmove->onground != -1 &&
-		 !pmove->dead &&
-		 pmove->flFallVelocity >= PLAYER_FALL_PUNCH_THRESHHOLD )
-	{
-		float fvol = 0.5;
-
-		if ( pmove->waterlevel > 0 )
-		{
-		}
-		else if ( pmove->flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED )
-		{
-			// NOTE:  In the original game dll , there were no breaks after these cases, causing the first one to 
-			// cascade into the second
-			//switch ( RandomLong(0,1) )
-			//{
-			//case 0:
-				//pmove->PM_PlaySound( CHAN_VOICE, "player/pl_fallpain2.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-				//break;
-			//case 1:
-				pmove->PM_PlaySound( CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-			//	break;
-			//}
-			fvol = 1.0;
-		}
-		else if ( pmove->flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED / 2 )
-		{
-			qboolean tfc = false;
-			tfc = atoi( pmove->PM_Info_ValueForKey( pmove->physinfo, "tfc" ) ) == 1 ? true : false;
-
-			if ( tfc )
-			{
-				pmove->PM_PlaySound( CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-			}
-
-			fvol = 0.85;
-		}
-		else if ( pmove->flFallVelocity < PLAYER_MIN_BOUNCE_SPEED )
-		{
-			fvol = 0;
-		}
-
-		if ( fvol > 0.0 )
-		{
-			// Play landing step right away
-			pmove->flTimeStepSound = 0;
-			
-			PM_UpdateStepSound();
-			
-			// play step sound for current texture
-			PM_PlayStepSound( PM_MapTextureTypeStepType( pmove->chtexturetype ), fvol );
-
-			// Knock the screen around a little bit, temporary effect
-			pmove->punchangle[ 2 ] = pmove->flFallVelocity * 0.013;	// punch z axis
-
-			if ( pmove->punchangle[ 0 ] > 8 )
-			{
-				pmove->punchangle[ 0 ] = 8;
-			}
-		}
-	}
-
 	if ( pmove->onground != -1 ) 
 	{		
+		// SERECKY JAN-24-26: Moved fall viewpunch and 
 		pmove->flFallVelocity = 0;
 	}
 }
+
+void PM_FallSound( void )
+{
+	// ThrillEX Addition/Edit Start
+	float fvol = 0.5;
+	float flFallVelocity = -pmove->velocity[2];
+
+	if ( flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED )
+	{
+		pmove->PM_PlaySound( CHAN_VOICE, "player/pl_fallpain3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+		fvol = 1.0;
+	}
+	else if ( flFallVelocity > PLAYER_MAX_SAFE_FALL_SPEED / 2 )
+	{
+		fvol = 0.85f;
+	}
+	else if ( flFallVelocity < PLAYER_MIN_BOUNCE_SPEED )
+	{
+		fvol = 0;
+	}
+
+	if ( fvol > 0.0 )
+	{
+		// Play landing step right away
+		pmove->flTimeStepSound = 0;
+		PM_UpdateStepSound();
+		// play step sound for current texture
+		PM_PlayStepSound( PM_MapTextureTypeStepType( pmove->chtexturetype ), fvol );
+	}
+}
+// ThrillEX Addition/Edit End
 
 /*
 =================

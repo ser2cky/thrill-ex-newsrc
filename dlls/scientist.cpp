@@ -1106,9 +1106,11 @@ public:
 
 	void KeyValue( KeyValueData *pkvd );
 	int	m_iPose;// which sequence to display
-	static char *m_szPoses[7];
+// ThrillEX Addition/Edit Start
+	static char *m_szPoses[10];
 };
-char *CDeadScientist::m_szPoses[] = { "lying_on_back", "lying_on_stomach", "dead_sitting", "dead_hang", "dead_table1", "dead_table2", "dead_table3" };
+char *CDeadScientist::m_szPoses[] = { "lying_on_back", "lying_on_stomach", "dead_sitting", "dead_hang", "dead_table1", "dead_table2", "dead_table3", "corpsefloat1", "corpsefloat2", "dead_grate" };
+// ThrillEX Addition/Edit End
 
 void CDeadScientist::KeyValue( KeyValueData *pkvd )
 {

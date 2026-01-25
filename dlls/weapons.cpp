@@ -37,6 +37,7 @@ extern int gEvilImpulse101;
 
 #define NOT_USED 255
 
+// ThrillEX Addition/Edit Start
 DLL_GLOBAL	short	g_sModelIndexLaser;// holds the index for the laser beam
 DLL_GLOBAL  const char *g_pModelNameLaser = "sprites/laserbeam.spr";
 DLL_GLOBAL	short	g_sModelIndexLaserDot;// holds the index for the laser beam dot
@@ -44,8 +45,8 @@ DLL_GLOBAL	short	g_sModelIndexFireball;// holds the index for the fireball
 DLL_GLOBAL	short	g_sModelIndexSmoke;// holds the index for the smoke cloud
 DLL_GLOBAL	short	g_sModelIndexWExplosion;// holds the index for the underwater explosion
 DLL_GLOBAL	short	g_sModelIndexBubbles;// holds the index for the bubbles model
-DLL_GLOBAL	short	g_sModelIndexBloodDrop;// holds the sprite index for the initial blood
-DLL_GLOBAL	short	g_sModelIndexBloodSpray;// holds the sprite index for splattered blood
+DLL_GLOBAL	short	g_sModelIndexShrapnel;	// ModelIndex for shrapnel.
+// ThrillEX Addition/Edit End
 
 ItemInfo CBasePlayerItem::ItemInfoArray[MAX_WEAPONS];
 AmmoInfo CBasePlayerItem::AmmoInfoArray[MAX_AMMO_SLOTS];
@@ -144,7 +145,7 @@ SpawnBlood
 */
 void SpawnBlood(Vector vecSpot, int bloodColor, float flDamage)
 {
-	UTIL_BloodDrips( vecSpot, g_vecAttackDir, bloodColor, (int)flDamage );
+	UTIL_BloodDrips( vecSpot, UTIL_RandomBloodVector() * (int)flDamage, bloodColor, (int)flDamage );
 }
 
 
@@ -169,27 +170,15 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		if ( !FNullEnt(pTrace->pHit) )
 			pEntity = CBaseEntity::Instance(pTrace->pHit);
 
+		// ThrillEX Addition/Edit Start
 		switch( iBulletType )
 		{
-		case BULLET_PLAYER_9MM:
-		case BULLET_MONSTER_9MM:
-		case BULLET_PLAYER_MP5:
-		case BULLET_MONSTER_MP5:
-		case BULLET_PLAYER_BUCKSHOT:
-		case BULLET_PLAYER_357:
-		default:
-			// smoke and decal
-			UTIL_GunshotDecalTrace( pTrace, DamageDecal( pEntity, DMG_BULLET ) );
-			break;
-		case BULLET_MONSTER_12MM:
-			// smoke and decal
-			UTIL_GunshotDecalTrace( pTrace, DamageDecal( pEntity, DMG_BULLET ) );
-			break;
 		case BULLET_PLAYER_CROWBAR:
 			// wall decal
 			UTIL_DecalTrace( pTrace, DamageDecal( pEntity, DMG_CLUB ) );
 			break;
 		}
+		// ThrillEX Addition/Edit End
 	}
 }
 
@@ -341,16 +330,16 @@ void W_Precache(void)
 	}
 #endif
 
-	g_sModelIndexFireball = PRECACHE_MODEL ("sprites/zerogxplode.spr");// fireball
+	// ThrillEX Addition/Edit Start
+	g_sModelIndexFireball = PRECACHE_MODEL ("sprites/explode1.spr");// fireball
 	g_sModelIndexWExplosion = PRECACHE_MODEL ("sprites/WXplo1.spr");// underwater fireball
 	g_sModelIndexSmoke = PRECACHE_MODEL ("sprites/steam1.spr");// smoke
 	g_sModelIndexBubbles = PRECACHE_MODEL ("sprites/bubble.spr");//bubbles
-	g_sModelIndexBloodSpray = PRECACHE_MODEL ("sprites/bloodspray.spr"); // initial blood
-	g_sModelIndexBloodDrop = PRECACHE_MODEL ("sprites/blood.spr"); // splattered blood 
+	g_sModelIndexShrapnel = PRECACHE_MODEL("models/shrapnel.mdl"); // Shrapnel Model.
 
 	g_sModelIndexLaser = PRECACHE_MODEL( (char *)g_pModelNameLaser );
 	g_sModelIndexLaserDot = PRECACHE_MODEL("sprites/laserdot.spr");
-
+	// ThrillEX Addition/Edit End
 
 	// used by explosions
 	PRECACHE_MODEL ("models/grenade.mdl");

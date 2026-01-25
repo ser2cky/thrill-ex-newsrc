@@ -33,6 +33,7 @@
 
 // ThrillEX Addition/Edit Start
 extern void CustomTent_Init(void);
+extern model_s* TRI_pModel;
 // ThrillEX Addition/Edit End
 
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
@@ -517,6 +518,10 @@ void CHud :: VidInit( void )
 	m_StatusIcons.VidInit();
 	m_GeneralHud.VidInit();
 	GetClientVoiceMgr()->VidInit();
+
+	// clear out TriAPI HUD's sprite
+	TRI_pModel = NULL;
+
 	// ThrillEX Addition/Edit End
 }
 

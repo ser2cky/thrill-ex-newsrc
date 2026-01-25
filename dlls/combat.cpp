@@ -1363,16 +1363,27 @@ void CBaseMonster :: TraceAttack( entvars_t *pevAttacker, float flDamage, Vector
 				pev->movetype = MOVETYPE_TOSS;
 				pev->flags &= ~FL_ONGROUND;
 
-				pev->origin.z += 1;
-				pev->velocity = vecDir * DamageForce(gMultiDamage.amount * 2.5f);
-				pev->velocity.z = DamageForce(gMultiDamage.amount * 0.5f);
-			}
-		}
-		// ThrillEX Addition/Edit End
+				pev->origin.z += 2;
 
+				if (pev->deadflag != DEAD_DEAD)
+				{
+					pev->velocity = vecDir * DamageForce(gMultiDamage.amount * 2.5f);
+					pev->velocity.z = fabs(pev->velocity.z) + 100.0f;
+				}
+				else
+				{
+					pev->velocity = vecDir * min(DamageForce(gMultiDamage.amount * 0.015f), 150.0f);
+					pev->velocity.z = 50.0f;
+				}
+			}
+
+			if ( pev->deadflag <= DEAD_DYING )
+				UTIL_BloodStream( ptr->vecEndPos, UTIL_RandomBloodVector(), BloodColor(), RANDOM_LONG( 80, 150 ) );
+		}
 		SpawnBlood(ptr->vecEndPos, BloodColor(), flDamage);// a little surface blood.
 		TraceBleed( flDamage, vecDir, ptr, bitsDamageType );
 		AddMultiDamage( pevAttacker, this, flDamage, bitsDamageType );
+		// ThrillEX Addition/Edit End
 	}
 }
 

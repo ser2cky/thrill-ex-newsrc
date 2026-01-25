@@ -3099,7 +3099,9 @@ CBaseEntity *FindEntityForward( CBaseEntity *pMe )
 
 BOOL CBasePlayer :: FlashlightIsOn( void )
 {
-	return FBitSet(pev->effects, EF_DIMLIGHT);
+	// ThrillEX Addition/Edit Start
+	return FBitSet(pev->effects, EF_FLASHLIGHT);
+	// ThrillEX Addition/Edit End
 }
 
 
@@ -3113,7 +3115,9 @@ void CBasePlayer :: FlashlightTurnOn( void )
 	if ( (pev->weapons & (1<<WEAPON_SUIT)) )
 	{
 		EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, SOUND_FLASHLIGHT_ON, 1.0, ATTN_NORM, 0, PITCH_NORM );
-		SetBits(pev->effects, EF_DIMLIGHT);
+		// ThrillEX Addition/Edit Start
+		SetBits(pev->effects, EF_FLASHLIGHT);
+		// ThrillEX Addition/Edit End
 		MESSAGE_BEGIN( MSG_ONE, gmsgFlashlight, NULL, pev );
 		WRITE_BYTE(1);
 		WRITE_BYTE(m_iFlashBattery);
@@ -3128,7 +3132,9 @@ void CBasePlayer :: FlashlightTurnOn( void )
 void CBasePlayer :: FlashlightTurnOff( void )
 {
 	EMIT_SOUND_DYN( ENT(pev), CHAN_WEAPON, SOUND_FLASHLIGHT_OFF, 1.0, ATTN_NORM, 0, PITCH_NORM );
-    ClearBits(pev->effects, EF_DIMLIGHT);
+	// ThrillEX Addition/Edit Start
+    ClearBits(pev->effects, EF_FLASHLIGHT);
+	// ThrillEX Addition/Edit End
 	MESSAGE_BEGIN( MSG_ONE, gmsgFlashlight, NULL, pev );
 	WRITE_BYTE(0);
 	WRITE_BYTE(m_iFlashBattery);

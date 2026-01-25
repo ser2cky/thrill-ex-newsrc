@@ -577,7 +577,7 @@ private:
 	int			m_iANumWidth[2];
 	int			m_iANumHeight[2];
 
-	wrect_t		*m_rcBatFull;
+	wrect_t		*m_rcBatFull[2];
 };
 // ThrillEX Addition/Edit End
 

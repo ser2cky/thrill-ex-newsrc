@@ -157,10 +157,14 @@ inline BOOL FStringNull(int iString)			{ return iString == iStringNull; }
 #define	VIEW_FIELD_ULTRA_NARROW	(float)0.9 // +-25 degrees, more narrow check used to set up ranged attacks
 
 // All monsters need this data
+
+// ThrillEX Addition/Edit Start
 #define		DONT_BLEED			-1
-#define		BLOOD_COLOR_RED		(BYTE)247
+#define		BLOOD_COLOR_RED		(BYTE)70
 #define		BLOOD_COLOR_YELLOW	(BYTE)195
 #define		BLOOD_COLOR_GREEN	BLOOD_COLOR_YELLOW
+#define		BLOOD_COLOR_PANTHY	(BYTE)145 // PantherGirl says "ooooooououuuuuuu!!!"
+// ThrillEX Addition/Edit End
 
 typedef enum 
 {
@@ -262,6 +266,9 @@ extern void			UTIL_DecalTrace( TraceResult *pTrace, int decalNumber );
 extern void			UTIL_PlayerDecalTrace( TraceResult *pTrace, int playernum, int decalNumber, BOOL bIsCustom );
 extern void			UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber );
 extern void			UTIL_Sparks( const Vector &position );
+// ThrillEX Addition/Edit Start
+extern void			UTIL_Smoke( const Vector &position, int width, int height, int count = 128 );
+// ThrillEX Addition/Edit End
 extern void			UTIL_Ricochet( const Vector &position, float scale );
 extern void			UTIL_StringToVector( float *pVector, const char *pString );
 extern void			UTIL_StringToIntArray( int *pVector, int count, const char *pString );

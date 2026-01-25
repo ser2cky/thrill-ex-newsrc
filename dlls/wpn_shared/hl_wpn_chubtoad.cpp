@@ -5,9 +5,15 @@
 //	Purpose: "Weapon" players can throw to
 //	distract enemies. Most of the code is
 //	rewritten to simplify things.
+// 
+//	I've simplfied the Chumtoad's AI greatly
+//	so it doesn't rely on schedules or any
+//	other built-in CBaseMonster stuff.
 //
 //	History:
 //	JAN-19-26: Started
+//	JAN-24-26: Started adding logic to the
+//	Chumtoad's AI.
 //
 //=======================================
 
@@ -33,13 +39,21 @@ class CChub : public CBaseMonster
 {
 public:
 	void		Precache(void);
+	int			Classify(void) { return CLASS_PLAYER_ALLY; };
 	void		Spawn(void);
+
 	void		MonsterThink(void);
+	void		MoveThink(float flDist);
+	void		ObserveThink(void);
+	void		PlayDeadThink(void);
+
 	static		CChub *CreateChumToad(CBasePlayer* pOwner);
 private:
 	int			m_iChubState;
+	float		m_flNextEnemyHunt;
 	float		m_flNextGoalChange;
 	edict_t		*m_pDmgInflictor;
+	EHANDLE		m_hAttacker;
 };
 
 LINK_ENTITY_TO_CLASS( monster_chumtoad, CChub );
@@ -79,6 +93,7 @@ void CChub::Spawn( void )
 	m_bloodColor = BLOOD_COLOR_GREEN;
 
 	pev->sequence = LookupActivity(ACT_IDLE);
+	m_iChubState = CHUB_ROAM;
 	ResetSequenceInfo();
 
 	MonsterInit();
@@ -91,6 +106,57 @@ void CChub::Spawn( void )
 void CChub::MonsterThink( void )
 {
 	float flInterval = StudioFrameAdvance();
+
+	if (pev->movetype != MOVETYPE_STEP)
+	{
+		pev->movetype = MOVETYPE_STEP;
+		pev->owner = NULL;
+		pev->angles.x = 0.0f;
+		pev->nextthink = gpGlobals->time + 0.1f;
+	}
+
+	if (m_flNextEnemyHunt <= gpGlobals->time)
+	{
+		if ( m_hEnemy == NULL || !m_hEnemy->IsAlive() )
+		{
+			Look(512);
+			m_hEnemy = BestVisibleEnemy();
+		}
+		m_flNextEnemyHunt = gpGlobals->time + 0.5f;
+	}
+
+	switch (m_iChubState)
+	{
+		case CHUB_STAND_STILL:
+		{
+			break;
+		}
+		case CHUB_ROAM:
+		{
+			MoveThink(flInterval);
+			break;
+		}
+		case CHUB_RUN_FOR_IT:
+		{
+			MoveThink(flInterval);
+			break;
+		}
+		case CHUB_OBSERVE:
+		{
+			break;
+		}
+		case CHUB_PLAYDEAD:
+		{
+			break;
+		}
+	}
+
+	pev->nextthink = gpGlobals->time;
+}
+
+
+void CChub::MoveThink(float flDist)
+{
 	int oldseq = pev->sequence;
 	int cantmove = 0;
 	TraceResult tr;
@@ -98,49 +164,44 @@ void CChub::MonsterThink( void )
 	Vector vecStart;
 	Vector vecEnd;
 
-	if (pev->movetype != MOVETYPE_STEP)
-	{
-		UTIL_TraceLine(pev->origin, pev->origin - Vector(0, 0, 2), ignore_monsters, ENT(pev), &tr);
-		if (tr.flFraction <= 0.1f)
-		{
-			pev->movetype = MOVETYPE_STEP;
-			pev->owner = NULL;
-			pev->angles.x = 0.0f;
-		}
-		else
-		{
-			pev->nextthink = gpGlobals->time + 0.25f;
-			return;
-		}
-	}
+	if (m_hEnemy != NULL)
+		ALERT(at_console, "%.2f\n", (m_hEnemy->pev->origin - pev->origin).Length());
 
 	pev->sequence = LookupActivity(ACT_WALK);
 	pev->framerate = 2.5f;
 
-	if ( !WALK_MOVE(ENT(pev), pev->angles.y, m_flGroundSpeed * flInterval, WALKMOVE_NORMAL) )
+	if (oldseq != pev->sequence)
+		ResetSequenceInfo();
+
+	if ( !WALK_MOVE(ENT(pev), pev->angles.y, m_flGroundSpeed * flDist, WALKMOVE_NORMAL) )
 	{
 		cantmove = 1;
 		m_flNextGoalChange = 0.0f;
 	}
 
-	if (oldseq != pev->sequence)
-		ResetSequenceInfo();
-
 	if (m_flNextGoalChange <= gpGlobals->time)
 	{
-		if ( RANDOM_FLOAT(0.0f, 1.0f) < 0.25f )
-			pev->ideal_yaw = pev->angles.y + RANDOM_FLOAT(-45.0f, 45.0f);
+		if ( RANDOM_LONG( 0, 5 ) == 0 )
+			pev->ideal_yaw = pev->angles.y + RANDOM_FLOAT(-360.0f, 360.0f);
+
+		if ( m_hEnemy != NULL && m_hAttacker == NULL )
+			pev->ideal_yaw = UTIL_VecToYaw( m_hEnemy->pev->origin - pev->origin );
+		else if ( m_hAttacker != NULL )
+			pev->ideal_yaw = -UTIL_VecToYaw( m_hAttacker->pev->origin - pev->origin );
 
 		UTIL_MakeVectors(pev->angles);
+
 		vecStart = pev->origin + pev->view_ofs;
 		vecEnd = vecStart + gpGlobals->v_forward * 128.0f;
 
 		UTIL_TraceLine(vecStart, vecEnd, dont_ignore_monsters, ENT(pev), &tr);
 
+		// SERECKY JAN-24-26: Check to see if we've hit a wall so chumtoads can change
+		// their direction.
 		if ( tr.flFraction < 0.95f || cantmove || tr.pHit && !FNullEnt(tr.pHit) )
 		{
 			ALERT(at_console, "chub: hit wall %.2f\n", tr.flFraction);
-			pev->ideal_yaw = ( pev->angles.y + 180.0f ) + RANDOM_FLOAT(-45.0f, 45.0f);
+			pev->ideal_yaw = ( pev->angles.y + 90.0f ) + RANDOM_FLOAT(-45.0f, 45.0f);
 			cantmove = 0;
 		}
 
@@ -158,7 +219,16 @@ void CChub::MonsterThink( void )
 		pev->angles.y -= 360.0f;
 
 	ChangeYaw(pev->yaw_speed);
-	pev->nextthink = gpGlobals->time;
+}
+
+void CChub::ObserveThink(void)
+{
+
+}
+
+void CChub::PlayDeadThink(void)
+{
+
 }
 
 //===============================

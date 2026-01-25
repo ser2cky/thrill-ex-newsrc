@@ -33,6 +33,25 @@
 
 // ThrillEX Addition/Edit Start
 #include "usermsg.h"
+
+// SERECKY JAN-20-26: Overriding ALERT function in order to prevent
+// AT_ERROR from crashing WON (The version of Half-Life I develop on)
+
+void ALERT(ALERT_TYPE atype, char* szFmt, ...)
+{
+	va_list			argptr;
+	static char		string[1024];
+
+	va_start(argptr, szFmt);
+	vsprintf(string, szFmt, argptr);
+	va_end(argptr);
+
+	if (atype == at_error)
+		atype = at_console;
+
+	(*g_engfuncs.pfnAlertMessage)(atype, "%s", string);
+}
+
 // ThrillEX Addition/Edit End
 
 float UTIL_WeaponTimeBase( void )
@@ -1151,9 +1170,10 @@ void UTIL_BloodStream( const Vector &origin, const Vector &direction, int color,
 	if ( g_Language == LANGUAGE_GERMAN && color == BLOOD_COLOR_RED )
 		color = 0;
 
-	
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
-		WRITE_BYTE( TE_BLOODSTREAM );
+	// ThrillEX Addition/Edit Start
+
+	MESSAGE_BEGIN( MSG_PVS, gmsgTempEntity, origin );
+		WRITE_BYTE( THRILLEX_BLOODSTREAM );
 		WRITE_COORD( origin.x );
 		WRITE_COORD( origin.y );
 		WRITE_COORD( origin.z );
@@ -1163,6 +1183,8 @@ void UTIL_BloodStream( const Vector &origin, const Vector &direction, int color,
 		WRITE_BYTE( color );
 		WRITE_BYTE( min( amount, 255 ) );
 	MESSAGE_END();
+
+	// ThrillEX Addition/Edit End
 }				
 
 void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, int amount )
@@ -1182,19 +1204,21 @@ void UTIL_BloodDrips( const Vector &origin, const Vector &direction, int color, 
 		amount *= 2;
 	}
 
-	if ( amount > 255 )
-		amount = 255;
+	// ThrillEX Addition/Edit Start
 
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, origin );
-		WRITE_BYTE( TE_BLOODSPRITE );
-		WRITE_COORD( origin.x);								// pos
-		WRITE_COORD( origin.y);
-		WRITE_COORD( origin.z);
-		WRITE_SHORT( g_sModelIndexBloodSpray );				// initial sprite model
-		WRITE_SHORT( g_sModelIndexBloodDrop );				// droplet sprite models
-		WRITE_BYTE( color );								// color index into host_basepal
-		WRITE_BYTE( min( max( 3, amount / 10 ), 16 ) );		// size
+	MESSAGE_BEGIN( MSG_PVS, gmsgTempEntity, origin );
+		WRITE_BYTE( THRILLEX_BLOOD );
+		WRITE_COORD( origin.x );
+		WRITE_COORD( origin.y );
+		WRITE_COORD( origin.z );
+		WRITE_COORD( direction.x );
+		WRITE_COORD( direction.y );
+		WRITE_COORD( direction.z );
+		WRITE_BYTE( color );
+		WRITE_BYTE( min( amount, 255 ) );
 	MESSAGE_END();
+
+	// ThrillEX Addition/Edit End
 }				
 
 Vector UTIL_RandomBloodVector( void )
@@ -1343,14 +1367,33 @@ void UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber )
 
 void UTIL_Sparks( const Vector &position )
 {
-	MESSAGE_BEGIN( MSG_PVS, SVC_TEMPENTITY, position );
-		WRITE_BYTE( TE_SPARKS );
+	// ThrillEX Addition/Edit Start
+	MESSAGE_BEGIN( MSG_PVS, gmsgTempEntity, position );
+		WRITE_BYTE( THRILLEX_SPARKS );
 		WRITE_COORD( position.x );
 		WRITE_COORD( position.y );
 		WRITE_COORD( position.z );
 	MESSAGE_END();
+	// ThrillEX Addition/Edit End
 }
 
+
+// ThrillEX Addition/Edit Start
+void UTIL_Smoke( const Vector &position, int width, int height, int count )
+{
+	// ThrillEX Addition/Edit Start
+	MESSAGE_BEGIN( MSG_PVS, gmsgTempEntity, position );
+		WRITE_BYTE( THRILLEX_SMOKE );
+		WRITE_COORD( position.x );
+		WRITE_COORD( position.y );
+		WRITE_COORD( position.z );
+		WRITE_BYTE( width );
+		WRITE_BYTE( height );
+		WRITE_BYTE( count );
+	MESSAGE_END();
+	// ThrillEX Addition/Edit End
+}
+// ThrillEX Addition/Edit End
 
 void UTIL_Ricochet( const Vector &position, float scale )
 {

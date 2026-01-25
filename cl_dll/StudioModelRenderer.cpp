@@ -52,6 +52,10 @@ void CStudioModelRenderer::Init( void )
 
 	IEngineStudio.GetModelCounters( &m_pStudioModelCount, &m_pModelsDrawn );
 
+	// ThrillEX Addition/Edit Start
+	m_pCvarLerpModels = CVAR_CREATE( "r_lerpmodels", "1", FCVAR_ARCHIVE );
+	// ThrillEX Addition/Edit End
+
 	// Get pointers to engine data structures
 	m_pbonetransform		= (float (*)[MAXSTUDIOBONES][3][4])IEngineStudio.StudioGetBoneTransform();
 	m_plighttransform		= (float (*)[MAXSTUDIOBONES][3][4])IEngineStudio.StudioGetLightTransform();
@@ -456,8 +460,10 @@ void CStudioModelRenderer::StudioSetUpTransform (int trivial_accept)
 			//Con_DPrintf("%4.2f %.2f %.2f\n", f, m_pCurrentEntity->curstate.animtime, m_clTime);
 		}
 
-		if (m_fDoInterp)
+		// ThrillEX Addition/Edit Start
+		if (m_fDoInterp && StudioCanLerp())
 		{
+		// ThrillEX Addition/Edit End
 			// ugly hack to interpolate angle, position. current is reached 0.1 seconds after being set
 			f = f - 1.0;
 		}
@@ -557,9 +563,10 @@ StudioEstimateInterpolant
 float CStudioModelRenderer::StudioEstimateInterpolant( void )
 {
 	float dadt = 1.0;
-
-	if ( m_fDoInterp && ( m_pCurrentEntity->curstate.animtime >= m_pCurrentEntity->latched.prevanimtime + 0.01 ) )
+	// ThrillEX Addition/Edit Start
+	if ( m_fDoInterp && ( m_pCurrentEntity->curstate.animtime >= m_pCurrentEntity->latched.prevanimtime + 0.01 ) && StudioCanLerp() )
 	{
+	// ThrillEX Addition/Edit End
 		dadt = (m_clTime - m_pCurrentEntity->curstate.animtime) / 0.1;
 		if (dadt > 2.0)
 		{
@@ -706,8 +713,8 @@ StudioEstimateFrame
 float CStudioModelRenderer::StudioEstimateFrame( mstudioseqdesc_t *pseqdesc )
 {
 	double				dfdt, f;
-
-	if ( m_fDoInterp )
+	// ThrillEX Addition/Edit Start
+	if ( m_fDoInterp && StudioCanLerp() )
 	{
 		if ( m_clTime < m_pCurrentEntity->curstate.animtime )
 		{
@@ -721,9 +728,20 @@ float CStudioModelRenderer::StudioEstimateFrame( mstudioseqdesc_t *pseqdesc )
 	}
 	else
 	{
-		dfdt = 0;
+		// m_fDoInterp fix for viewmodels - serecky 10.12.25
+		if (m_pCurrentEntity == gEngfuncs.GetViewModel())
+		{
+			if (m_clTime < m_pCurrentEntity->curstate.animtime)
+				dfdt = 0;
+			else
+				dfdt = (int)((m_clTime - m_pCurrentEntity->curstate.animtime) * m_pCurrentEntity->curstate.framerate * pseqdesc->fps);
+		}
+		else
+		{
+			dfdt = 0;
+		}
 	}
-
+	// ThrillEX Addition/Edit End
 	if (pseqdesc->numframes <= 1)
 	{
 		f = 0;
@@ -832,11 +850,13 @@ void CStudioModelRenderer::StudioSetupBones ( void )
 		}
 	}
 	
-	if (m_fDoInterp &&
+	// ThrillEX Addition/Edit Start
+	if (m_fDoInterp && StudioCanLerp() &&
 		m_pCurrentEntity->latched.sequencetime &&
 		( m_pCurrentEntity->latched.sequencetime + 0.2 > m_clTime ) && 
 		( m_pCurrentEntity->latched.prevsequence < m_pStudioHeader->numseq ))
 	{
+	// ThrillEX Addition/Edit End
 		// blend from last sequence
 		static float		pos1b[MAXSTUDIOBONES][3];
 		static vec4_t		q1b[MAXSTUDIOBONES];
@@ -1132,8 +1152,12 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 	if (flags & STUDIO_EVENTS)
 	{
-		StudioCalcAttachments( );
-		IEngineStudio.StudioClientEvents( );
+		// ThrillEX Addition/Edit Start
+		// Don't call if we got a muzzleflash!!
+		if (!(m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH))
+			IEngineStudio.StudioClientEvents();
+		// ThrillEX Addition/Edit End
+
 		// copy attachments into global entity array
 		if ( m_pCurrentEntity->index > 0 )
 		{
@@ -1149,6 +1173,19 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting );
 
 		IEngineStudio.StudioEntityLight( &lighting );
+
+		// ThrillEX Addition/Edit Start
+		// Here we can override the muzzleflash!!!
+		if (m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH)
+		{
+			lighting.color[2] /= 2;
+			lighting.shadelight += 56;
+			lighting.ambientlight += 56;
+			m_pCurrentEntity->curstate.effects &= ~EF_MUZZLEFLASH;
+		}
+		// SERECKY JAN-24-26: thanks again to droogie for doing an
+		// engine-sided version of this effect a long time ago.
+		// ThrillEX Addition/Edit End
 
 		// model and frame independant
 		IEngineStudio.StudioSetupLighting (&lighting);
@@ -1425,7 +1462,13 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 	if (flags & STUDIO_EVENTS)
 	{
 		StudioCalcAttachments( );
-		IEngineStudio.StudioClientEvents( );
+
+		// ThrillEX Addition/Edit Start
+		// Don't call if we got a muzzleflash!!
+		if (!(m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH))
+			IEngineStudio.StudioClientEvents();
+		// ThrillEX Addition/Edit End
+
 		// copy attachments into global entity array
 		if ( m_pCurrentEntity->index > 0 )
 		{
@@ -1452,6 +1495,19 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		IEngineStudio.StudioDynamicLight(m_pCurrentEntity, &lighting );
 
 		IEngineStudio.StudioEntityLight( &lighting );
+
+		// ThrillEX Addition/Edit Start
+		// Here we can override the muzzleflash!!!
+		if (m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH)
+		{
+			lighting.color[2] /= 2;
+			lighting.shadelight += 56;
+			lighting.ambientlight += 56;
+			m_pCurrentEntity->curstate.effects &= ~EF_MUZZLEFLASH;
+		}
+		// SERECKY JAN-24-26: thanks again to droogie for doing an
+		// engine-sided version of this effect a long time ago.
+		// ThrillEX Addition/Edit End
 
 		// model and frame independant
 		IEngineStudio.StudioSetupLighting (&lighting);
@@ -1635,8 +1691,10 @@ void CStudioModelRenderer::StudioRenderFinal_Hardware( void )
 		{
 			IEngineStudio.StudioSetupModel( i, (void **)&m_pBodyPart, (void **)&m_pSubModel );
 
-			if (m_fDoInterp)
+			// ThrillEX Addition/Edit Start
+			if (m_fDoInterp && StudioCanLerp())
 			{
+			// ThrillEX Addition/Edit End
 				// interpolation messes up bounding boxes.
 				m_pCurrentEntity->trivial_accept = 0; 
 			}
@@ -1675,3 +1733,24 @@ void CStudioModelRenderer::StudioRenderFinal(void)
 	}
 }
 
+// ThrillEX Addition/Edit Start
+/*
+====================
+StudioCanLerp
+
+SERECKY JAN-18-26: Check to see whether or not we can interpolate model animations...
+Added this here for those that would like to see Half-Life if it was... Quake-ified...
+====================
+*/
+
+int CStudioModelRenderer::StudioCanLerp(void)
+{
+	if (!m_pCvarLerpModels)
+		return 1;
+
+	if (m_pCvarLerpModels->value)
+		return 1;
+
+	return 0;
+}
+// ThrillEX Addition/Edit End

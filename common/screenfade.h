@@ -21,4 +21,17 @@ typedef struct screenfade_s
 	int			fadeFlags;		// Fading flags
 } screenfade_t;
 
+// ThrillEX Addition/Edit Start
+typedef struct
+{
+	int		destcolor[3];
+	int		percent;		// 0-256
+} cshift_t;
+
+#define	CSHIFT_DAMAGE	0
+#define	CSHIFT_BONUS	1
+
+#define	NUM_CSHIFTS		2
+// ThrillEX Addition/Edit End
+
 #endif // !SCREENFADEH

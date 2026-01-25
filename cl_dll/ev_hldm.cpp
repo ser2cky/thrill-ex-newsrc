@@ -48,13 +48,13 @@ extern cvar_t *cl_lw;
 
 // ThrillEX Addition/Edit Start
 
-#if 0
+//#if 0
 // Test particle effects.
 extern void R_BouncySparks(vec3_t org, vec3_t dir, int count, int noise, float lifetime);
 extern void R_RenderSmoke(vec3_t org, float scale, float vert_scale, int count);
 extern void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed);
 extern void R_Blood(vec_t* org, vec_t* dir, int pcolor, int speed);
-#endif
+//#endif
 
 // ThrillEX Addition/Edit End
 
@@ -63,7 +63,6 @@ extern "C"
 
 // HLDM
 void EV_FireGlock1( struct event_args_s *args  );
-void EV_FireGlock2( struct event_args_s *args  );
 void EV_FireShotGunSingle( struct event_args_s *args  );
 void EV_FireShotGunDouble( struct event_args_s *args  );
 void EV_FireMP5( struct event_args_s *args  );
@@ -433,7 +432,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 				vecImpactOrg[i] = tr.endpos[i] - (vecDir[i] * 4.0f);
 				//vecImpactDir[i] = gEngfuncs.pfnRandomFloat(-128.0f, 128.0f);
 			}
-
+			//R_RenderSmoke(vecImpactOrg, 32, 64, 64);
 			switch(iBulletType)
 			{
 			default:
@@ -463,6 +462,7 @@ void EV_HLDM_FireBullets( int idx, float *forward, float *right, float *up, int 
 //======================
 //	    GLOCK START
 //======================
+
 void EV_FireGlock1( event_args_t *args )
 {
 	int idx;
@@ -496,63 +496,18 @@ void EV_FireGlock1( event_args_t *args )
 	}
 
 	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
-
 	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
 
-	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/pl_gun3.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong( 0, 3 ) );
+	// ThrillEX Addition/Edit Start
+	const char *szSounds[2] = { "weapons/pl_gun1.wav", "weapons/pl_gun2.wav" };
+	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, szSounds[gEngfuncs.pfnRandomLong(0, 1)], gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong( 0, 3 ) );
+	// ThrillEX Addition/Edit End
 
 	EV_GetGunPosition( args, vecSrc, origin );
-	
 	VectorCopy( forward, vecAiming );
-
 	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, 0, args->fparam1, args->fparam2 );
 }
 
-void EV_FireGlock2( event_args_t *args )
-{
-	int idx;
-	vec3_t origin;
-	vec3_t angles;
-	vec3_t velocity;
-	
-	vec3_t ShellVelocity;
-	vec3_t ShellOrigin;
-	int shell;
-	vec3_t vecSrc, vecAiming;
-	vec3_t vecSpread;
-	vec3_t up, right, forward;
-
-	idx = args->entindex;
-	VectorCopy( args->origin, origin );
-	VectorCopy( args->angles, angles );
-	VectorCopy( args->velocity, velocity );
-
-	AngleVectors( angles, forward, right, up );
-
-	shell = gEngfuncs.pEventAPI->EV_FindModelIndex ("models/shell.mdl");// brass shell
-
-	if ( EV_IsLocal( idx ) )
-	{
-		// Add muzzle flash to current weapon model
-		EV_MuzzleFlash();
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( GLOCK_SHOOT, 2 );
-
-		V_PunchAxis( 0, -2.0 );
-	}
-
-	EV_GetDefaultShellInfo( args, origin, velocity, ShellVelocity, ShellOrigin, forward, right, up, 20, -12, 4 );
-
-	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
-
-	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/pl_gun3.wav", gEngfuncs.pfnRandomFloat(0.92, 1.0), ATTN_NORM, 0, 98 + gEngfuncs.pfnRandomLong( 0, 3 ) );
-
-	EV_GetGunPosition( args, vecSrc, origin );
-	
-	VectorCopy( forward, vecAiming );
-
-	EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_9MM, 0, &tracerCount[idx-1], args->fparam1, args->fparam2 );
-	
-}
 //======================
 //	   GLOCK END
 //======================
@@ -710,8 +665,6 @@ void EV_FireMP5( event_args_t *args )
 	EV_EjectBrass ( ShellOrigin, ShellVelocity, angles[ YAW ], shell, TE_BOUNCE_SHELL ); 
 
 	// ThrillEX Addition/Edit Start
-
-#if 0
 	switch( gEngfuncs.pfnRandomLong( 0, 2 ) )
 	{
 	case 0:
@@ -724,8 +677,7 @@ void EV_FireMP5( event_args_t *args )
 		gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/hks3.wav", 1, ATTN_NORM, 0, 94 + gEngfuncs.pfnRandomLong( 0, 0xf ) );
 		break;
 	}
-#endif
-	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "hw_gun3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
+	//gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "hw_gun3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
 	// ThrillEX Addition/Edit End
 
 	EV_GetGunPosition( args, vecSrc, origin );
