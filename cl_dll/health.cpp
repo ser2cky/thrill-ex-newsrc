@@ -275,9 +275,7 @@ void CHudHealth::GetPainColor( int &r, int &g, int &b )
 int CHudHealth::Draw(float flTime)
 {
 	// ThrillEX Addition/Edit Start
-	int r, g, b;
-	int a = 0, x, y;
-	int HealthWidth;
+	int a = 0;
 
 	if ( (gHUD.m_iHideHUDDisplay & HIDEHUD_HEALTH) || gEngfuncs.IsSpectateOnly() )
 		return 1;

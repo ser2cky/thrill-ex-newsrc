@@ -678,19 +678,16 @@ void EV_FireMP5( event_args_t *args )
 		break;
 	}
 	//gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "hw_gun3.wav", 1, ATTN_NORM, 0, PITCH_NORM );
-	// ThrillEX Addition/Edit End
+	
 
 	EV_GetGunPosition( args, vecSrc, origin );
 	VectorCopy( forward, vecAiming );
 
 	if ( gEngfuncs.GetMaxClients() > 1 )
-	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
-	}
+		EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
 	else
-	{
-		EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 2, &tracerCount[idx-1], args->fparam1, args->fparam2 );
-	}
+		EV_HLDM_FireBullets( idx, forward, right, up, 1, vecSrc, vecAiming, 8192, BULLET_PLAYER_MP5, 1, &tracerCount[idx-1], args->fparam1, args->fparam2 );
+	// ThrillEX Addition/Edit End
 }
 
 // We only predict the animation and sound
@@ -727,6 +724,19 @@ void EV_FireMP52( event_args_t *args )
 //	   PHYTON START 
 //	     ( .357 )
 //======================
+
+enum python_e {
+	PYTHON_IDLE1 = 0,
+	PYTHON_FIDGET,
+	PYTHON_IDLE2,
+	PYTHON_IDLE3,
+	PYTHON_FIRE1,
+	PYTHON_RELOAD,
+	PYTHON_DRAW,
+	PYTHON_HOLSTER,
+	PYTHON_FIRE2
+};
+
 void EV_FirePython( event_args_t *args )
 {
 	int idx;
@@ -745,6 +755,9 @@ void EV_FirePython( event_args_t *args )
 
 	AngleVectors( angles, forward, right, up );
 
+	// ThrillEX Addition/Edit Start
+	int animate = args->iparam1;
+
 	if ( EV_IsLocal( idx ) )
 	{
 		// Python uses different body in multiplayer versus single player
@@ -752,10 +765,13 @@ void EV_FirePython( event_args_t *args )
 
 		// Add muzzle flash to current weapon model
 		EV_MuzzleFlash();
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( PYTHON_FIRE1, multiplayer ? 1 : 0 );
+
+		if (animate)
+			gEngfuncs.pEventAPI->EV_WeaponAnimation( PYTHON_FIRE1, multiplayer ? 1 : 0 );
 
 		V_PunchAxis( 0, -10.0 );
 	}
+	// ThrillEX Addition/Edit End
 
 	switch( gEngfuncs.pfnRandomLong( 0, 1 ) )
 	{
@@ -1100,22 +1116,21 @@ void EV_FireGauss( event_args_t *args )
 //	   CROWBAR START
 //======================
 
+// ThrillEX Addition/Edit Start
+
 enum crowbar_e {
 	CROWBAR_IDLE = 0,
+	CROWBAR_ATTACK1,
+	CROWBAR_ATTACK2,
 	CROWBAR_DRAW,
-	CROWBAR_HOLSTER,
-	CROWBAR_ATTACK1HIT,
-	CROWBAR_ATTACK1MISS,
-	CROWBAR_ATTACK2MISS,
-	CROWBAR_ATTACK2HIT,
-	CROWBAR_ATTACK3MISS,
-	CROWBAR_ATTACK3HIT
+	CROWBAR_HOLSTER
 };
 
 int g_iSwing;
 
 //Only predict the miss sounds, hit sounds are still played 
 //server side, so players don't get the wrong idea.
+
 void EV_Crowbar( event_args_t *args )
 {
 	int idx;
@@ -1130,20 +1145,11 @@ void EV_Crowbar( event_args_t *args )
 	gEngfuncs.pEventAPI->EV_PlaySound( idx, origin, CHAN_WEAPON, "weapons/cbar_miss1.wav", 1, ATTN_NORM, 0, PITCH_NORM); 
 
 	if ( EV_IsLocal( idx ) )
-	{
-		gEngfuncs.pEventAPI->EV_WeaponAnimation( CROWBAR_ATTACK1MISS, 1 );
-
-		switch( (g_iSwing++) % 3 )
-		{
-			case 0:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK1MISS, 1 ); break;
-			case 1:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK2MISS, 1 ); break;
-			case 2:
-				gEngfuncs.pEventAPI->EV_WeaponAnimation ( CROWBAR_ATTACK3MISS, 1 ); break;
-		}
-	}
+		gEngfuncs.pEventAPI->EV_WeaponAnimation( CROWBAR_ATTACK1 + gEngfuncs.pfnRandomLong(0, 1), 1 );
 }
+
+// ThrillEX Addition/Edit End
+
 //======================
 //	   CROWBAR END 
 //======================

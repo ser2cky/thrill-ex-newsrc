@@ -22,6 +22,7 @@
 #include "com_model.h"
 
 extern engine_studio_api_t IEngineStudio;
+extern void R_RenderDlights(void);
 // ThrillEX Addition/Edit End
 
 #define DLLEXPORT __declspec( dllexport )
@@ -255,7 +256,7 @@ TRI_GetSpriteParms
 ================
 */
 
-void TRI_SprSet( HSPRITE spr, int r, int g, int b)
+void TRI_SprSet( HL_SPRITE spr, int r, int g, int b)
 {
 	if (!IEngineStudio.IsHardware())
 	{
@@ -459,6 +460,9 @@ Render any triangles with transparent rendermode needs here
 */
 void DLLEXPORT HUD_DrawTransparentTriangles( void )
 {
+	// ThrillEX Addition/Edit Start
+	R_RenderDlights();
+	// ThrillEX Addition/Edit End
 
 #if defined( TEST_IT )
 //	Draw_Triangles();

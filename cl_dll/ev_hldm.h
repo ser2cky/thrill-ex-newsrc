@@ -61,16 +61,8 @@ enum mp5_e
 	MP5_FIRE3,
 };
 
-enum python_e {
-	PYTHON_IDLE1 = 0,
-	PYTHON_FIDGET,
-	PYTHON_FIRE1,
-	PYTHON_RELOAD,
-	PYTHON_HOLSTER,
-	PYTHON_DRAW,
-	PYTHON_IDLE2,
-	PYTHON_IDLE3
-};
+// ThrillEX Addition/Edit Start
+// ThrillEX Addition/Edit End
 
 #define	GAUSS_PRIMARY_CHARGE_VOLUME	256// how loud gauss is while charging
 #define GAUSS_PRIMARY_FIRE_VOLUME	450// how loud gauss is when discharged

@@ -246,6 +246,35 @@ BOOL CBasePlayerWeapon :: CanDeploy( void )
 	return TRUE;
 }
 
+// ThrillEX Addition/Edit Start
+/*
+=====================
+CBasePlayerWeapon :: DefaultHolster
+
+=====================
+*/
+
+void CBasePlayerWeapon::DefaultHolster(int iAnim, float flDelay, int skiplocal, int body)
+{
+	m_fInReload = FALSE;
+	SendWeaponAnim(iAnim, skiplocal, body);
+
+	// TODO JAN-27-26: Add CVar that controls how long the holster's gonna be...
+	// it'll default to 0.5f...
+
+	if (!flDelay)
+	{
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
+	}
+	else
+	{
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flDelay;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + flDelay + 1.0f;
+	}
+}
+// ThrillEX Addition/Edit End
+
 /*
 =====================
 CBasePlayerWeapon :: DefaultDeploy
@@ -820,6 +849,10 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	player.ammo_hornets		= (int)from->client.vuser2[0];
 	player.ammo_rockets		= (int)from->client.ammo_rockets;
 
+	// ThrillEX Addition/Edit Start
+	player.m_iWeaponState	= from->client.iuser4;
+	player.m_flAttackDelay	= from->client.fuser4;
+	// ThrillEX Addition/Edit End
 	
 	// Point to current weapon object
 	if ( from->client.m_iId )
@@ -841,6 +874,9 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 		if ( player.m_flNextAttack <= 0 )
 		{
 			pWeapon->ItemPostFrame();
+
+			if (player.m_pActiveItem)
+				player.m_pActiveItem->ItemPostFrame();
 		}
 	}
 
@@ -895,6 +931,11 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	to->client.ammo_cells				= player.ammo_uranium;
 	to->client.vuser2[0]				= player.ammo_hornets;
 	to->client.ammo_rockets				= player.ammo_rockets;
+
+	// ThrillEX Addition/Edit Start
+	to->client.iuser4					= player.m_iWeaponState;
+	to->client.fuser4					= player.m_flAttackDelay;
+	// ThrillEX Addition/Edit End
 
 	if ( player.m_pActiveItem->m_iId == WEAPON_RPG )
 	{
@@ -1015,6 +1056,8 @@ void HUD_WeaponsPostThink( local_state_s *from, local_state_s *to, usercmd_t *cm
 	{
 		to->client.fuser3 = -0.001;
 	}
+
+
 
 	// Store off the last position from the predicted state.
 	HUD_SetLastOrg();

@@ -12,6 +12,20 @@
 *   without written permission from Valve LLC.
 *
 ****/
+
+//=======================================
+//	hl_wpn_python.cpp
+//
+//	History:
+// 
+//	JAN-27-26: Started reimplementing all
+//	the Thrill stuff back into here.
+//	ItemPostFrame() doesn't call events anymore
+//	because the client for some reason can't
+//	play it's events.
+//
+//=======================================
+
 #if !defined( OEM_BUILD ) && !defined( HLDEMO_BUILD )
 
 #include "extdll.h"
@@ -22,20 +36,26 @@
 #include "player.h"
 #include "gamerules.h"
 
-
 enum python_e {
 	PYTHON_IDLE1 = 0,
 	PYTHON_FIDGET,
+	PYTHON_IDLE2,
+	PYTHON_IDLE3,
 	PYTHON_FIRE1,
 	PYTHON_RELOAD,
-	PYTHON_HOLSTER,
 	PYTHON_DRAW,
-	PYTHON_IDLE2,
-	PYTHON_IDLE3
+	PYTHON_HOLSTER,
+	PYTHON_FIRE2
 };
 
 LINK_ENTITY_TO_CLASS( weapon_python, CPython );
 LINK_WEAPON_TO_CLASS( weapon_357, CPython );
+
+/*
+======================================
+Spawn
+======================================
+*/
 
 int CPython::GetItemInfo(ItemInfo *p)
 {
@@ -54,6 +74,12 @@ int CPython::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
+/*
+======================================
+Spawn
+======================================
+*/
+
 int CPython::AddToPlayer( CBasePlayer *pPlayer )
 {
 	if ( CBasePlayerWeapon::AddToPlayer( pPlayer ) )
@@ -65,6 +91,12 @@ int CPython::AddToPlayer( CBasePlayer *pPlayer )
 	}
 	return FALSE;
 }
+
+/*
+======================================
+Spawn
+======================================
+*/
 
 void CPython::Spawn( )
 {
@@ -78,6 +110,11 @@ void CPython::Spawn( )
 	FallInit();// get ready to fall down.
 }
 
+/*
+======================================
+Spawn
+======================================
+*/
 
 void CPython::Precache( void )
 {
@@ -96,64 +133,44 @@ void CPython::Precache( void )
 	m_usFirePython = PRECACHE_EVENT( 1, "events/python.sc" );
 }
 
+/*
+======================================
+Spawn
+======================================
+*/
+
 BOOL CPython::Deploy( )
 {
-#ifdef CLIENT_DLL
-	if ( bIsMultiplayer() )
-#else
-	if ( g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		// enable laser sight geometry.
-		pev->body = 1;
-	}
-	else
-	{
-		pev->body = 0;
-	}
-
-	return DefaultDeploy( "models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python", UseDecrement(), pev->body );
+	return DefaultDeploy( "models/v_357.mdl", "models/p_357.mdl", PYTHON_DRAW, "python", UseDecrement() );
 }
 
+/*
+======================================
+Spawn
+======================================
+*/
 
-void CPython::Holster( int skiplocal /* = 0 */ )
+void CPython::Holster( int skiplocal )
 {
-	m_fInReload = FALSE;// cancel any reload in progress.
-
-	if ( m_fInZoom )
-	{
-		SecondaryAttack();
-	}
-
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 1.0;
-	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
-	SendWeaponAnim( PYTHON_HOLSTER );
+	DefaultHolster( PYTHON_HOLSTER );
 }
+
+/*
+======================================
+Spawn
+======================================
+*/
 
 void CPython::SecondaryAttack( void )
 {
-#ifdef CLIENT_DLL
-	if ( !bIsMultiplayer() )
-#else
-	if ( !g_pGameRules->IsMultiplayer() )
-#endif
-	{
-		return;
-	}
-
-	if ( m_pPlayer->pev->fov != 0 )
-	{
-		m_fInZoom = FALSE;
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
-	}
-	else if ( m_pPlayer->pev->fov != 40 )
-	{
-		m_fInZoom = TRUE;
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 40;
-	}
-
-	m_flNextSecondaryAttack = 0.5;
+	m_flNextSecondaryAttack = UTIL_WeaponTimeBase() + 0.5;
 }
+
+/*
+======================================
+Spawn
+======================================
+*/
 
 void CPython::PrimaryAttack()
 {
@@ -178,6 +195,7 @@ void CPython::PrimaryAttack()
 		return;
 	}
 
+#if 0
 	m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
 	m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
 
@@ -205,40 +223,51 @@ void CPython::PrimaryAttack()
 #endif
 
 	PLAYBACK_EVENT_FULL( flags, m_pPlayer->edict(), m_usFirePython, 0.0, (float *)&g_vecZero, (float *)&g_vecZero, vecDir.x, vecDir.y, 0, 0, 0, 0 );
+#endif
 
+
+	// SERECKY JAN-27-26: this will make animations appear screwed up in M.P
+	m_iForceAnim = 1;
+	SendWeaponAnim(PYTHON_FIRE1);
+	m_iForceAnim = 0;
+
+	// SERECKY JAN-27-26: Moved this out of ItemPostFrame because the client for some reason forgets the attack delay
+	// and ends up never playing the event. People that unknowingly have "cl_lw 1" on suck.
+	PLAYBACK_EVENT_FULL(FEV_NOTHOST, m_pPlayer->edict(), m_usFirePython, 0.25f, (float*)&g_vecZero, (float*)&g_vecZero, VECTOR_CONE_1DEGREES.x, VECTOR_CONE_1DEGREES.y, 0, 0, 0, 0);
+
+	// HEV suit - indicate out of ammo condition
 	if (!m_iClip && m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType] <= 0)
-		// HEV suit - indicate out of ammo condition
 		m_pPlayer->SetSuitUpdate("!HEV_AMO0", FALSE, 0);
 
-	m_flNextPrimaryAttack = 0.75;
-	m_flTimeWeaponIdle = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+	m_pPlayer->m_iWeaponState = WS_SPECIAL;
+	m_pPlayer->m_flAttackDelay = gpGlobals->time + 0.25f;
+
+	m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 1.35f; // 0.75
+	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10.0f, 15.0f );
 }
 
+/*
+======================================
+Spawn
+======================================
+*/
 
 void CPython::Reload( void )
 {
 	if ( m_pPlayer->ammo_357 <= 0 )
 		return;
 
-	if ( m_pPlayer->pev->fov != 0 )
+	if (DefaultReload( 6, PYTHON_RELOAD, 2.0f ))
 	{
-		m_fInZoom = FALSE;
-		m_pPlayer->pev->fov = m_pPlayer->m_iFOV = 0;  // 0 means reset to default fov
-	}
-
-	int bUseScope = FALSE;
-#ifdef CLIENT_DLL
-	bUseScope = bIsMultiplayer();
-#else
-	bUseScope = g_pGameRules->IsMultiplayer();
-#endif
-
-	if (DefaultReload( 6, PYTHON_RELOAD, 2.0, bUseScope ))
-	{
-		m_flSoundDelay = 1.5;
+		m_flSoundDelay = 1.5f;
 	}
 }
 
+/*
+======================================
+Spawn
+======================================
+*/
 
 void CPython::WeaponIdle( void )
 {
@@ -247,10 +276,10 @@ void CPython::WeaponIdle( void )
 	m_pPlayer->GetAutoaimVector( AUTOAIM_10DEGREES );
 
 	// ALERT( at_console, "%.2f\n", gpGlobals->time - m_flSoundDelay );
-	if (m_flSoundDelay != 0 && m_flSoundDelay <= UTIL_WeaponTimeBase() )
+	if (m_flSoundDelay && (m_flSoundDelay <= UTIL_WeaponTimeBase()))
 	{
 		EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "weapons/357_reload1.wav", RANDOM_FLOAT(0.8, 0.9), ATTN_NORM);
-		m_flSoundDelay = 0;
+		m_flSoundDelay = 0.0f;
 	}
 
 	if (m_flTimeWeaponIdle > UTIL_WeaponTimeBase() )
@@ -258,38 +287,71 @@ void CPython::WeaponIdle( void )
 
 	int iAnim;
 	float flRand = UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
+
 	if (flRand <= 0.5)
 	{
 		iAnim = PYTHON_IDLE1;
-		m_flTimeWeaponIdle = (70.0/30.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + ( 51.0f / 30.0f );
 	}
 	else if (flRand <= 0.7)
 	{
 		iAnim = PYTHON_IDLE2;
-		m_flTimeWeaponIdle = (60.0/30.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + ( 81.0f / 30.0f );
 	}
 	else if (flRand <= 0.9)
 	{
 		iAnim = PYTHON_IDLE3;
-		m_flTimeWeaponIdle = (88.0/30.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + ( 66.0f / 30.0f );
 	}
 	else
 	{
 		iAnim = PYTHON_FIDGET;
-		m_flTimeWeaponIdle = (170.0/30.0);
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + ( 91.0f / 30.0f );
 	}
 	
-	int bUseScope = FALSE;
-#ifdef CLIENT_DLL
-	bUseScope = bIsMultiplayer();
-#else
-	bUseScope = g_pGameRules->IsMultiplayer();
-#endif
-	
-	SendWeaponAnim( iAnim, UseDecrement() ? 1 : 0, bUseScope );
+	SendWeaponAnim( iAnim, UseDecrement() ? 1 : 0 );
 }
 
+/*
+======================================
+ItemPostFrame
+======================================
+*/
 
+void CPython::ItemPostFrame(void)
+{
+	if (m_pPlayer->m_flAttackDelay && (m_pPlayer->m_flAttackDelay <= gpGlobals->time))
+	{
+		m_pPlayer->m_iWeaponVolume = LOUD_GUN_VOLUME;
+		m_pPlayer->m_iWeaponFlash = BRIGHT_GUN_FLASH;
+
+		m_iClip--;
+
+		m_pPlayer->pev->effects = (int)(m_pPlayer->pev->effects) | EF_MUZZLEFLASH;
+
+		// player "shoot" animation
+		m_pPlayer->SetAnimation(PLAYER_ATTACK1);
+
+
+		UTIL_MakeVectors(m_pPlayer->pev->v_angle + m_pPlayer->pev->punchangle);
+
+		Vector vecSrc = m_pPlayer->GetGunPosition();
+		Vector vecAiming = m_pPlayer->GetAutoaimVector(AUTOAIM_10DEGREES);
+
+		Vector vecDir;
+		vecDir = m_pPlayer->FireBulletsPlayer(1, vecSrc, vecAiming, VECTOR_CONE_1DEGREES, 8192, BULLET_PLAYER_357, 0, 0, m_pPlayer->pev, m_pPlayer->random_seed);
+
+		m_pPlayer->m_flAttackDelay = 0.0f;
+	}
+
+	CBasePlayerWeapon::ItemPostFrame();
+}
+
+/*
+======================================
+CPythonAmmo
+======================================
+*/
 
 class CPythonAmmo : public CBasePlayerAmmo
 {

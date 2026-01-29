@@ -167,6 +167,15 @@ public:
 	// usable player items 
 	CBasePlayerItem	*m_rgpPlayerItems[MAX_ITEM_TYPES];
 	CBasePlayerItem *m_pActiveItem;
+
+	// ThrillEX Addition/Edit Start
+
+	CBasePlayerItem		*m_pNextActiveItem;
+	int					m_iWeaponState; // SERECKY JAN-27-26: For holstering.
+	float				m_flAttackDelay; // SERECKY JAN-27-26: For weapons with an attack delay.
+
+	// ThrillEX Addition/Edit End
+
 	CBasePlayerItem *m_pClientActiveItem;  // client version of the active item
 	CBasePlayerItem *m_pLastItem;
 	// shared ammo slots

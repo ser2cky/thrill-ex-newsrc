@@ -30,6 +30,9 @@
 //	Also re-implemented cl_flashlight_style, and
 //	S.W mode particle tracers from the Alpha...
 // 
+//	JAN-25-26: ...Did some funny OpenGL stuff with
+//	gl_flashblend. added muzzleflash F.X too..
+// 
 //=======================================
 
 #include "hud.h"
@@ -43,13 +46,202 @@
 #include "event_api.h"
 #include "entity_state.h"
 #include "cl_entity.h"
+#include "triangleapi.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
+#include <gl/GL.h>
+#pragma comment(lib, "opengl32.lib")
+
+extern engine_studio_api_t IEngineStudio;
+int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf);
 
 #ifndef M_PI
 #define M_PI		3.14159265358979323846	// matches value in gcc v2 math.h
 #endif
 
-extern engine_studio_api_t IEngineStudio;
-int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf);
+#define				MAX_DLIGHTS		32
+extern vec3_t		v_origin, v_angles;
+extern float		v_blend[4];
+extern cvar_t		*gl_flashblend;
+
+dlight_t			cl_dlights[MAX_DLIGHTS];
+/*
+=============================================================================
+
+DYNAMIC LIGHTS BLEND RENDERING
+
+=============================================================================
+*/
+
+void AddLightBlend( float r, float g, float b, float a2 )
+{
+	float	a;
+
+	v_blend[3] = a = v_blend[3] + a2 * (1 - v_blend[3]);
+
+	a2 = a2 / a;
+
+	v_blend[0] = v_blend[1] * (1 - a2) + r * a2;
+	v_blend[1] = v_blend[1] * (1 - a2) + g * a2;
+	v_blend[2] = v_blend[2] * (1 - a2) + b * a2;
+}
+
+//===============================
+//	CL_AllocDlight
+//	Override CL_AllocDlight if we got gl_flashblend
+//	1 activated...
+//===============================
+
+dlight_t* CL_AllocDlight( int key )
+{
+	int	i;
+	dlight_t* dl;
+
+	if (!gl_flashblend->value || !IEngineStudio.IsHardware())
+		return gEngfuncs.pEfxAPI->CL_AllocDlight(key);
+
+	// first look for an exact key match
+	if (key)
+	{
+		dl = cl_dlights;
+		for (i = 0; i < MAX_DLIGHTS; i++, dl++)
+		{
+			if (dl->key == key)
+			{
+				memset(dl, 0, sizeof(*dl));
+				dl->key = key;
+				return dl;
+			}
+		}
+	}
+
+	// then look for anything else
+	dl = cl_dlights;
+	for (i = 0; i < MAX_DLIGHTS; i++, dl++)
+	{
+		if (dl->die < gEngfuncs.GetClientTime())
+		{
+			memset(dl, 0, sizeof(*dl));
+			dl->key = key;
+			return dl;
+		}
+	}
+
+	dl = &cl_dlights[0];
+	memset(dl, 0, sizeof(*dl));
+	dl->key = key;
+	return dl;
+}
+
+//===============================
+//	R_RenderDlight
+//	For gl_flashblend stuff...
+//===============================
+
+void R_RenderDlight(dlight_t* light)
+{
+	vec3_t	vpn, vright, vup, v;
+	float	rad, a;
+	int		i, j;
+
+	rad = light->radius * 0.35;
+
+	AngleVectors(v_angles, vpn, vright, vup);
+	VectorSubtract(light->origin, v_origin, v);
+
+	if (Length(v) < rad)
+	{	// view is inside the dlight
+		AddLightBlend(1, 0.5, 0, light->radius * 0.0003);
+		//gEngfuncs.Con_Printf("cl_tent_custom: r:%.2f g:%.2f b:%.2f a:%.2f\n", v_blend[0], v_blend[1], v_blend[2], v_blend[3]);
+		return;
+	}
+
+
+	glBegin(GL_TRIANGLE_FAN);
+	glColor3f(0.2f, 0.1f, 0.0f);
+	for (i = 0; i < 3; i++)
+		v[i] = light->origin[i] - vpn[i] * rad;
+	glVertex3fv(v);
+	glColor3f(0.0f, 0.0f, 0.0f);
+	for (i = 16; i >= 0; i--)
+	{
+		a = i / 16.0 * M_PI * 2;
+		for (j = 0; j < 3; j++)
+			v[j] = light->origin[j] + vright[j] * cos(a) * rad
+			+ vup[j] * sin(a) * rad;
+		glVertex3fv(v);
+	}
+	glEnd();
+
+	// SERECKY JAN-27-26: triapi is a piece of shit and cannot
+	// keep the flashblend color consistent. Triapi in general
+	// is a piece of shit like oh my god like its good that 
+	// it exists but it can do fuck all nothing
+
+#if 0
+	gEngfuncs.pTriAPI->RenderMode(kRenderTransAdd);
+	gEngfuncs.pTriAPI->Begin(TRI_TRIANGLE_FAN);
+	gEngfuncs.pTriAPI->Color4f(0.2f, 0.1f, 0.0f, 1.0f);
+	for (i = 0; i < 3; i++)
+		v[i] = light->origin[i] - vpn[i] * rad;
+	gEngfuncs.pTriAPI->Vertex3fv(v);
+	gEngfuncs.pTriAPI->Color4f(0.0f, 0.0f, 0.0f, 0.0f);
+	for (i = 16; i >= 0; i--)
+	{
+		a = i / 16.0 * M_PI * 2;
+		for (j = 0; j < 3; j++)
+			v[j] = light->origin[j] + vright[j] * cos(a) * rad
+			+ vup[j] * sin(a) * rad;
+		gEngfuncs.pTriAPI->Vertex3fv(v);
+	}
+	gEngfuncs.pTriAPI->End();
+	gEngfuncs.pTriAPI->RenderMode(kRenderNormal);
+#endif
+}
+
+/*
+=============
+R_RenderDlights
+=============
+*/
+void R_RenderDlights( void )
+{
+	int		i;
+	dlight_t* l;
+
+	if (!gl_flashblend->value || !IEngineStudio.IsHardware())
+		return;
+
+
+	glDepthMask(GL_FALSE);
+	glDisable(GL_TEXTURE_2D);
+	glShadeModel(GL_SMOOTH);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE);
+
+	l = cl_dlights;
+	for (i = 0; i < MAX_DLIGHTS; i++, l++)
+	{
+		if (l->die < gEngfuncs.GetClientTime() || !l->radius)
+			continue;
+
+		R_RenderDlight(l);
+
+		l->radius -= gHUD.m_flTimeDelta * l->decay;
+		if (l->radius < 0)
+			l->radius = 0;
+		//gEngfuncs.Con_Printf("Rendering dlight\n");
+	}
+
+	glColor3f(1, 1, 1);
+	glDisable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(GL_TRUE);
+}
 
 //===============================
 //	CustomTent_Init
@@ -60,6 +252,7 @@ int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf);
 cvar_t	*cl_explosion_style;
 cvar_t	*cl_flashlight_style;
 cvar_t	*tracer_style;
+cvar_t	*cl_muzzleflash_style;
 cvar_t	*tracerSpeed = NULL;
 cvar_t	*tracerOffset = NULL;
 
@@ -70,6 +263,7 @@ void CustomTent_Init(void)
 	// 0 = Sprite, 1 = Shrapnel, 2 = Sprite & Shrapnel
 	cl_explosion_style		= CVAR_CREATE( "cl_explosion_style", "2", FCVAR_ARCHIVE );
 	cl_flashlight_style		= CVAR_CREATE( "cl_flashlight_style", "0", FCVAR_ARCHIVE );
+	cl_muzzleflash_style	= CVAR_CREATE( "cl_muzzleflash_style", "0", FCVAR_ARCHIVE );
 	tracer_style			= CVAR_CREATE( "tracer_style", "0", FCVAR_ARCHIVE );
 	
 	// SERECKY JAN-25-26: Evil hack to override default tracer properties.
@@ -81,8 +275,20 @@ void CustomTent_Init(void)
 	gEngfuncs.Cvar_SetValue( "tracerblue", 0.1 );
 	gEngfuncs.Cvar_SetValue( "traceralpha", 0.2 );
 
+	gEngfuncs.Cvar_SetValue( "texgamma", 1.8 );
+	gEngfuncs.Cvar_SetValue( "lambert", 1.7 );
+
 	tracerSpeed = gEngfuncs.pfnGetCvarPointer("tracerspeed");
 	tracerOffset = gEngfuncs.pfnGetCvarPointer("traceroffset");
+}
+
+//===============================
+//	CustomTent_Reset
+//===============================
+
+void CustomTent_Reset(void)
+{
+	memset(cl_dlights, 0, sizeof(cl_dlights));
 }
 
 //===============================
@@ -601,7 +807,7 @@ void R_Explosion(vec3_t org, int scale, int framerate, int speed, int sprite, in
 	if (cl_explosion_style->value == 1 || cl_explosion_style->value == 2)
 		gEngfuncs.pEfxAPI->R_TempSphereModel(org, 400.0f, 1.5f, 30, model);
 
-	dlight_t* dl = gEngfuncs.pEfxAPI->CL_AllocDlight(0);
+	dlight_t* dl = CL_AllocDlight(0);
 	VectorCopy(org, dl->origin);
 
 	// SERECKY JAN-24-26: Thanks SanyaSho for  the exact
@@ -800,15 +1006,33 @@ int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf)
 
 void CL_RenderEntityFX(cl_entity_t* ent)
 {
+	vec3_t		fv, rv, uv;
 	dlight_t *dl, *dl_1;
 
 	switch (ent->curstate.effects)
 	{
+		case EF_MUZZLEFLASH:
+		{
+			if ( cl_muzzleflash_style->value == 0 )
+				break;
+
+			dl = CL_AllocDlight(0);
+			VectorCopy(ent->origin, dl->origin);
+			dl->origin[2] += 16;
+			AngleVectors(ent->angles, fv, rv, uv);
+
+			VectorMA(dl->origin, 18, fv, dl->origin);
+			dl->color.r = dl->color.g = dl->color.b = 255;
+			dl->radius = 200 + (rand() & 31);
+			dl->minlight = 32;
+			dl->die = gEngfuncs.GetClientTime() + 0.1;
+			break;
+		}
 		case EF_FLASHLIGHT:
 		{
 			if ( ( cl_flashlight_style->value == 0 ) || ( cl_flashlight_style->value == 2 ) )
 			{
-				dl_1 = gEngfuncs.pEfxAPI->CL_AllocDlight(2);
+				dl_1 = CL_AllocDlight(2);
 
 				pmtrace_t tr;
 				physent_t *pe;
@@ -867,7 +1091,7 @@ void CL_RenderEntityFX(cl_entity_t* ent)
 
 			if ( cl_flashlight_style->value >= 1 )
 			{
-				dl = gEngfuncs.pEfxAPI->CL_AllocDlight(1);
+				dl = CL_AllocDlight(1);
 				VectorCopy(ent->origin, dl->origin);
 				dl->radius = 200 + (rand() & 31);
 				dl->color.r = dl->color.g = dl->color.b = 255;

@@ -157,7 +157,7 @@ WEAPON* WeaponsResource :: GetNextActivePos( int iSlot, int iSlotPos )
 
 int giBucketHeight, giBucketWidth, giABHeight, giABWidth; // Ammo Bar width and height
 
-HSPRITE ghsprBuckets;					// Sprite for top row of weapons menu
+HL_SPRITE ghsprBuckets;					// Sprite for top row of weapons menu
 
 DECLARE_MESSAGE(m_Ammo, CurWeapon );	// Current weapon and clip
 DECLARE_MESSAGE(m_Ammo, WeaponList);	// new weapon type
@@ -323,7 +323,7 @@ void CHudAmmo::Think(void)
 //
 
 // ThrillEX Addition/Edit Start
-HSPRITE* WeaponsResource :: GetAmmoPicFromWeapon( int iAmmoId, wrect_t& rect )
+HL_SPRITE* WeaponsResource :: GetAmmoPicFromWeapon( int iAmmoId, wrect_t& rect )
 {
 #if 0
 	for ( int i = 0; i < MAX_WEAPONS; i++ )
@@ -752,12 +752,6 @@ void CHudAmmo::UserCmd_PrevWeapon(void)
 // ThrillEX Addition/Edit Start
 int CHudAmmo::Draw(float flTime)
 {
-	int a, x, y, r, g, b;
-	int AmmoWidth;
-
-	if (!(gHUD.m_iWeaponBits & (1<<(WEAPON_SUIT)) ))
-		return 1;
-
 	if ( (gHUD.m_iHideHUDDisplay & ( HIDEHUD_WEAPONS | HIDEHUD_ALL )) )
 		return 1;
 

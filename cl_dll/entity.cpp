@@ -30,6 +30,7 @@ int g_iAlive = 1;
 
 // ThrillEX Addition/Edit Start
 extern void CL_RenderEntityFX(cl_entity_t* ent);
+dlight_t* CL_AllocDlight(int key);
 // ThrillEX Addition/Edit End
 
 extern "C" 
@@ -912,7 +913,9 @@ void DLLEXPORT HUD_TempEntUpdate (
 
 			if ( (pTemp->flags & FTENT_FLICKER) && gTempEntFrame == pTemp->entity.curstate.effects )
 			{
-				dlight_t *dl = gEngfuncs.pEfxAPI->CL_AllocDlight (0);
+				// ThrillEX Addition/Edit Start
+				dlight_t *dl = CL_AllocDlight(0);
+				// ThrillEX Addition/Edit End
 				VectorCopy (pTemp->entity.origin, dl->origin);
 				dl->radius = 60;
 				dl->color.r = 255;

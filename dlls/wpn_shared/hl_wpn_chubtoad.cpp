@@ -349,7 +349,7 @@ Holster
 
 void CChubGrenade::Holster( int skiplocal )
 {
-
+	DefaultHolster( CHUB_DOWN );
 }
 
 /*

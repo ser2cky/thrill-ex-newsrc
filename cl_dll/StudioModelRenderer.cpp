@@ -29,6 +29,10 @@
 #include "StudioModelRenderer.h"
 #include "GameStudioModelRenderer.h"
 
+// ThrillEX Addition/Edit Start
+extern cvar_t *cl_muzzleflash_style;
+// ThrillEX Addition/Edit End
+
 // Global engine <-> studio model rendering code interface
 engine_studio_api_t IEngineStudio;
 
@@ -1176,7 +1180,7 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 		// ThrillEX Addition/Edit Start
 		// Here we can override the muzzleflash!!!
-		if (m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH)
+		if ( ( m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH ) && (!cl_muzzleflash_style->value) )
 		{
 			lighting.color[2] /= 2;
 			lighting.shadelight += 56;
@@ -1498,7 +1502,7 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 
 		// ThrillEX Addition/Edit Start
 		// Here we can override the muzzleflash!!!
-		if (m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH)
+		if ( ( m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH ) && (!cl_muzzleflash_style->value) )
 		{
 			lighting.color[2] /= 2;
 			lighting.shadelight += 56;

@@ -24,6 +24,8 @@
 //	that doesn't use that weird console 
 //	font thing I threw together...
 //
+//	JAN-25-26: alpha hud 320x mode support.
+// 
 //	TODO JAN-18-26 : Make HUD display
 //	properly at resolutions below 640x
 //	for the lital people that use 1 B.C
@@ -53,6 +55,7 @@ cvar_t* test_cvar;
 int CHudGeneral::Init(void)
 {
 	m_pCvarHudStyle = CVAR_CREATE( "hud_style", "3", FCVAR_ARCHIVE );
+	m_pCvarAlphaTint = CVAR_CREATE( "hud_alpha_tint", "1", FCVAR_ARCHIVE );
 	test_cvar = CVAR_CREATE( "test_cvar", "255", 0 );
 
 	m_iFlags |= HUD_ACTIVE;
@@ -78,6 +81,8 @@ void CHudGeneral::Quake_VidInit(void)
 	m_gHUD_num_0[0]			= gHUD.GetSpriteIndex( "num_0" );
 	m_gHUD_anum_0[0]		= gHUD.GetSpriteIndex( "anum_0" );
 
+	m_flFacePainTime = 0.0f;
+
 	for ( int j = 0; j < 5; j++ )
 	{
 		m_hFace[j][0] = gHUD.GetSpriteIndex( va( "face%d", j + 1 ) );
@@ -85,12 +90,70 @@ void CHudGeneral::Quake_VidInit(void)
 	}
 }
 
+int g_iHealthOffset[2], g_iBatteryOffset[2];
+int g_iAmmo1Offset[2], g_iAmmo2Offset[2];
+int g_iHealthMax, g_iBatMax, g_iAmmo1Max, g_iAmmo2Max;
+int g_iBatHeight, g_iBatWidth, g_iClipWidth, g_iAmmo1Width;
+
 void CHudGeneral::Alpha_VidInit(void)
 {
 	// 0 - Bottom left
 	// 1 - Bottom Right
 	// 2 - Middle Right
 	// 3 - Top Left
+
+	if ( gHUD.GetResolution() >= 640 )
+	{
+		g_iHealthOffset[0] = 88;
+		g_iHealthOffset[1] = 44;
+
+		g_iBatteryOffset[0] = 20;
+		g_iBatteryOffset[1] = 145;
+
+		g_iAmmo1Offset[0] = 50;
+		g_iAmmo1Offset[1] = 50;
+
+		g_iAmmo2Offset[0] = 95;
+		g_iAmmo2Offset[1] = 44;
+
+		g_iHealthMax = 15;
+		g_iBatMax = 8;
+
+		g_iAmmo1Max = 25;
+		g_iAmmo2Max = 15;
+
+		g_iBatWidth = 30;
+		g_iBatHeight = 8;
+
+		g_iAmmo1Width = 22;
+		g_iClipWidth = 8;
+	}
+	else
+	{
+		g_iHealthOffset[0] = 44;
+		g_iHealthOffset[1] = 28;
+
+		g_iBatteryOffset[0] = 10;
+		g_iBatteryOffset[1] = 62;
+
+		g_iAmmo1Offset[0] = 28;
+		g_iAmmo1Offset[1] = 43;
+
+		g_iAmmo2Offset[0] = 42;
+		g_iAmmo2Offset[1] = 39;
+
+		g_iHealthMax = 8;
+		g_iBatMax = 6;
+
+		g_iAmmo1Max = 15;
+		g_iAmmo2Max = 8;
+
+		g_iBatWidth = 16;
+		g_iBatHeight = 4;
+
+		g_iAmmo1Width = 18;
+		g_iClipWidth = 6;
+	}
 
 	m_hAlphaBars[0]		= gHUD.GetSprite(gHUD.GetSpriteIndex("bar_btm_lf"));
 	m_hAlphaBars[1]		= gHUD.GetSprite(gHUD.GetSpriteIndex("bar_btm_rt"));
@@ -389,7 +452,7 @@ void CHudGeneral::DrawBasicQuakeHud(void)
 	y -= 24 + 2;
 
 	SPR_Set(m_hArmor, 255, 255, 255);
-	SPR_DrawHoles(0, x, y, NULL);
+	SPR_DrawHoles(0, x, y, &gHUD.GetSpriteRect(m_hArmor));
 
 	x += 24;
 	gHUD.DrawHudNumber(x, y, iFlags, iBat, 255, 255, 255, 255, (iBat <= 25) ? m_gHUD_anum_0[0] : m_gHUD_num_0[0]);
@@ -462,23 +525,7 @@ void CHudGeneral::DrawAlphaHud(void)
 	int x, y, r, g, b, a, i;
 	int iSize = SCR_GetViewSize();
 	int iHealth, iBat, iAmmo1, iAmmo2;
-	int iHealthMax, iBatMax, iAmmo1Max, iAmmo2Max;
 	int iHeight, iSizeHack;
-
-	if (ScreenWidth >= 640)
-	{
-		iAmmo1Max = 25;
-		iAmmo2Max = 15;
-		iHealthMax = 15;
-		iBatMax = 8;
-	}
-	else
-	{
-		iAmmo1Max = 25;
-		iAmmo2Max = 8;
-		iHealthMax = 8;
-		iBatMax = 6;
-	}
 
 	// Battery meter.
 
@@ -490,8 +537,11 @@ void CHudGeneral::DrawAlphaHud(void)
 		SPR_Set(m_hAlphaBars[3], 255, 255, 255);
 		SPR_DrawHoles(0, x, y, NULL);
 
-		SPR_Set(m_hAlphaTints[3], 255, 255, 255);
-		SPR_DrawHoles(0, x, y, NULL);
+		if (m_pCvarAlphaTint->value)
+		{
+			SPR_Set(m_hAlphaTints[3], 255, 255, 255);
+			SPR_DrawHoles(0, x, y, NULL);
+		}
 
 		// SERECKY JAN-18-26: Force hud to show 1 meter if we've got
 		// less than 10 percent of our armor and it's not zero.
@@ -499,17 +549,20 @@ void CHudGeneral::DrawAlphaHud(void)
 		if ((gHUD.m_Health.m_iBat < 10) && (gHUD.m_Health.m_iBat > 0))
 			iBat = 1;
 		else
-			iBat = ceil((gHUD.m_Health.m_iBat * iBatMax) * 0.01f);
+			iBat = ceil((gHUD.m_Health.m_iBat * g_iBatMax) * 0.01f);
 
 		r = 255; g = 156; b = 39; a = 255;
 
-		x = 20;
-		y = 138;
+		if (!m_pCvarAlphaTint->value)
+			a = 128;
+
+		x = g_iBatteryOffset[0];
+		y = g_iBatteryOffset[1] - g_iBatHeight;
 
 		for ( i = 0; i < iBat; i++ )
 		{
-			FillRGBA(x, y, 30, 8, r, g, b, a, 0);
-			y -= 10;
+			FillRGBA(x, y, g_iBatWidth, g_iBatHeight, r, g, b, a, 0);
+			y -= g_iBatHeight + 2;
 		}
 	}
 
@@ -523,19 +576,14 @@ void CHudGeneral::DrawAlphaHud(void)
 		SPR_Set(m_hAlphaBars[0], 255, 255, 255);
 		SPR_DrawHoles(0, x, y, NULL);
 
-		SPR_Set(m_hAlphaTints[0], 255, 255, 255);
-		SPR_DrawHoles(0, x, y, NULL);
+		if (m_pCvarAlphaTint->value)
+		{
+			SPR_Set(m_hAlphaTints[0], 255, 255, 255);
+			SPR_DrawHoles(0, x, y, NULL);
+		}
 
-		if (ScreenWidth >= 640)
-		{
-			x = 88;
-			y += 84;
-		}
-		else
-		{
-			x = 44;
-			y += 36;
-		}
+		x = g_iHealthOffset[0];
+		y = gHUD.m_iHudScaleHeight - g_iHealthOffset[1];
 
 		// SERECKY JAN-18-26: Force hud to show 1 meter if we've got
 		// less than 10 percent of our health and we're not dead.
@@ -543,9 +591,12 @@ void CHudGeneral::DrawAlphaHud(void)
 		if ((gHUD.m_Health.m_iHealth < 10) && (gHUD.m_Health.m_iHealth > 0))
 			iHealth = 1;
 		else
-			iHealth = ceil((gHUD.m_Health.m_iHealth * iHealthMax) * 0.01f);
+			iHealth = ceil((gHUD.m_Health.m_iHealth * g_iHealthMax) * 0.01f);
 
 		r = 255; g = 156; b = 39; a = 255;
+
+		if (!m_pCvarAlphaTint->value)
+			a = 128;
 
 		for ( i = 0; i < iHealth; i++ )
 		{
@@ -564,8 +615,11 @@ void CHudGeneral::DrawAlphaHud(void)
 		SPR_Set(m_hAlphaBars[1], 255, 255, 255);
 		SPR_DrawHoles(0, x, y, NULL);
 
-		SPR_Set(m_hAlphaTints[1], 255, 255, 255);
-		SPR_DrawHoles(0, x, y, NULL);
+		if (m_pCvarAlphaTint->value)
+		{
+			SPR_Set(m_hAlphaTints[1], 255, 255, 255);
+			SPR_DrawHoles(0, x, y, NULL);
+		}
 
 		x = gHUD.m_iHudScaleWidth - m_iAlphaWidth[2];
 		y -= m_iAlphaHeight[2];
@@ -573,14 +627,20 @@ void CHudGeneral::DrawAlphaHud(void)
 		SPR_Set(m_hAlphaBars[2], 255, 255, 255);
 		SPR_DrawHoles(0, x, y, NULL);
 
-		SPR_Set(m_hAlphaTints[2], 255, 255, 255);
-		SPR_DrawHoles(0, x, y, NULL);
+		if (m_pCvarAlphaTint->value)
+		{
+			SPR_Set(m_hAlphaTints[2], 255, 255, 255);
+			SPR_DrawHoles(0, x, y, NULL);
+		}
 
 		if (!gHUD.m_Ammo.m_pWeapon)
 			return;
 
 		WEAPON *pw = gHUD.m_Ammo.m_pWeapon;
 		r = 255; g = 156; b = 39; a = 255;
+
+		if (!m_pCvarAlphaTint->value)
+			a = 128;
 
 		// SERECKY JAN-18-26: Added code for drawing ammo bars, health, and batteries. The code here isn't the
 		// most pretty, but it looks good enough and I'd like to move the codebase to the 2.3 SDK soon.
@@ -591,10 +651,10 @@ void CHudGeneral::DrawAlphaHud(void)
 			if (pw->iClip >= 0)
 			{
 				// Get height for a single meter.
-				iHeight = (pw->iMaxClip > 0) ? ( (( iAmmo1Max * 10 ) / (float)pw->iMaxClip ) - 2 ) : 0;
+				iHeight = (pw->iMaxClip > 0) ? ( (( g_iAmmo1Max * 10 ) / (float)pw->iMaxClip ) - 2 ) : 0;
 				
-				x = gHUD.m_iHudScaleWidth - 50;
-				y = gHUD.m_iHudScaleHeight - 50 - iHeight;
+				x = gHUD.m_iHudScaleWidth - g_iAmmo1Offset[0];
+				y = gHUD.m_iHudScaleHeight - g_iAmmo1Offset[1] - iHeight;
 
 				if (iHeight >= 3)
 				{
@@ -606,15 +666,15 @@ void CHudGeneral::DrawAlphaHud(void)
 						if ( i == (pw->iMaxClip - 1) )
 						{
 							iSizeHack = (iHeight + 2) * pw->iMaxClip;
-							if (iSizeHack >= (iAmmo1Max * 10))
+							if (iSizeHack >= (g_iAmmo1Max * 10))
 							{
-								iSizeHack -= (iAmmo1Max * 10);
+								iSizeHack -= (g_iAmmo1Max * 10);
 								iHeight -= iSizeHack;
 								y += iSizeHack;
 							}
 							else
 							{
-								iSizeHack = ((iAmmo1Max * 10) - iSizeHack);
+								iSizeHack = ((g_iAmmo1Max * 10) - iSizeHack);
 								iHeight += iSizeHack;
 								y -= iSizeHack;
 							}
@@ -627,27 +687,27 @@ void CHudGeneral::DrawAlphaHud(void)
 				else
 				{
 					// Get height for a bar meter.
-					iHeight = ( (float)pw->iClip / (float)pw->iMaxClip ) * (iAmmo1Max * 10);
-					x = gHUD.m_iHudScaleWidth - 50;
-					y = gHUD.m_iHudScaleHeight - 50 - iHeight;
+					iHeight = ( (float)pw->iClip / (float)pw->iMaxClip ) * (g_iAmmo1Max * 10);
+					x = gHUD.m_iHudScaleWidth - g_iAmmo1Offset[0];
+					y = gHUD.m_iHudScaleHeight - g_iAmmo1Offset[1] - iHeight;
 
 					FillRGBA(x, y, 8, iHeight, r, g, b, a, 0);
 				}
 
 				// Get height for a bar meter.
-				iHeight = ( (float)gWR.CountAmmo(pw->iAmmoType) / (float)pw->iMax1 ) * (iAmmo1Max * 10);
-				x += 8 + 4;
-				y = gHUD.m_iHudScaleHeight - 50 - iHeight;
+				iHeight = ( (float)gWR.CountAmmo(pw->iAmmoType) / (float)pw->iMax1 ) * (g_iAmmo1Max * 10);
+				x += g_iClipWidth + 4;
+				y = gHUD.m_iHudScaleHeight - g_iAmmo1Offset[1] - iHeight;
 
 				FillRGBA(x, y, 8, iHeight, r, g, b, a, 0);
 			}
 			else
 			{
 				// Get height for a single meter.
-				iHeight = (pw->iMax1 > 0) ? ( (( iAmmo1Max * 10 ) / (float)pw->iMax1 ) - 2 ) : 0;
+				iHeight = (pw->iMax1 > 0) ? ( (( g_iAmmo1Max * 10 ) / (float)pw->iMax1 ) - 2 ) : 0;
 
-				x = gHUD.m_iHudScaleWidth - 50;
-				y = gHUD.m_iHudScaleHeight - 50 - iHeight;
+				x = gHUD.m_iHudScaleWidth - g_iAmmo1Offset[0];
+				y = gHUD.m_iHudScaleHeight - g_iAmmo1Offset[1] - iHeight;
 				iAmmo1 = gWR.CountAmmo(pw->iAmmoType);
 
 				if (iHeight >= 3)
@@ -660,30 +720,30 @@ void CHudGeneral::DrawAlphaHud(void)
 						if ( i == (pw->iMax1 - 1) )
 						{
 							iSizeHack = (iHeight + 2) * pw->iMax1;
-							if (iSizeHack >= (iAmmo1Max * 10))
+							if (iSizeHack >= (g_iAmmo1Max * 10))
 							{
-								iSizeHack -= (iAmmo1Max * 10);
+								iSizeHack -= (g_iAmmo1Max * 10);
 								iHeight -= iSizeHack;
 								y += iSizeHack;
 							}
 							else
 							{
-								iSizeHack = ((iAmmo1Max * 10) - iSizeHack);
+								iSizeHack = ((g_iAmmo1Max * 10) - iSizeHack);
 								iHeight += iSizeHack;
 								y -= iSizeHack;
 							}
 						}
 
-						FillRGBA(x, y, 22, iHeight, r, g, b, a, 0);
+						FillRGBA(x, y, g_iAmmo1Width, iHeight, r, g, b, a, 0);
 						y -= iHeight + 2;
 					}
 				}
 				else
 				{
 					// Get height for a bar meter.
-					iHeight = ( (float)iAmmo1 / (float)pw->iMax1 ) * (iAmmo1Max * 10);
+					iHeight = ( (float)iAmmo1 / (float)pw->iMax1 ) * (g_iAmmo1Max * 10);
 					y = gHUD.m_iHudScaleHeight - 50 - iHeight;
-					FillRGBA(x, y, 22, iHeight, r, g, b, a, 0);
+					FillRGBA(x, y, g_iAmmo1Width, iHeight, r, g, b, a, 0);
 				}
 			}
 		}
@@ -693,10 +753,10 @@ void CHudGeneral::DrawAlphaHud(void)
 		{
 			if ((pw->iAmmo2Type != 0) && (gWR.CountAmmo(pw->iAmmo2Type) >= 0))
 			{
-				iHeight = (pw->iMax2 > 0) ? ( (( iAmmo2Max * 10 ) / (float)pw->iMax2 ) - 2 ) : 0;
+				iHeight = (pw->iMax2 > 0) ? ( (( g_iAmmo2Max * 10 ) / (float)pw->iMax2 ) - 2 ) : 0;
 
-				x = gHUD.m_iHudScaleWidth - 95;
-				y = gHUD.m_iHudScaleHeight - 44;
+				x = gHUD.m_iHudScaleWidth - g_iAmmo2Offset[0] - iHeight;
+				y = gHUD.m_iHudScaleHeight - g_iAmmo2Offset[1];
 
 				iAmmo2 = gWR.CountAmmo(pw->iAmmo2Type);
 
@@ -705,15 +765,15 @@ void CHudGeneral::DrawAlphaHud(void)
 					if ( i == (pw->iMax2 - 1) )
 					{
 						iSizeHack = (iHeight + 2) * pw->iMax2;
-						if (iSizeHack >= (iAmmo2Max * 10))
+						if (iSizeHack >= (g_iAmmo2Max * 10))
 						{
-							iSizeHack -= (iAmmo2Max * 10);
+							iSizeHack -= (g_iAmmo2Max * 10);
 							iHeight -= iSizeHack;
 							x += iSizeHack;
 						}
 						else
 						{
-							iSizeHack = ((iAmmo2Max * 10) - iSizeHack);
+							iSizeHack = ((g_iAmmo2Max * 10) - iSizeHack);
 							iHeight += iSizeHack;
 							x -= iSizeHack;
 						}

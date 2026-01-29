@@ -414,8 +414,7 @@ BOOL CTripmine::Deploy( )
 
 void CTripmine::Holster( int skiplocal /* = 0 */ )
 {
-	m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5;
-
+	// ThrillEX Addition/Edit Start
 	if (!m_pPlayer->m_rgAmmo[m_iPrimaryAmmoType])
 	{
 		// out of mines
@@ -423,9 +422,9 @@ void CTripmine::Holster( int skiplocal /* = 0 */ )
 		SetThink( &CTripmine::DestroyItem );
 		pev->nextthink = gpGlobals->time + 0.1;
 	}
-
-	SendWeaponAnim( TRIPMINE_HOLSTER );
+	DefaultHolster( TRIPMINE_HOLSTER );
 	EMIT_SOUND(ENT(m_pPlayer->pev), CHAN_WEAPON, "common/null.wav", 1.0, ATTN_NORM);
+	// ThrillEX Addition/Edit End
 }
 
 void CTripmine::PrimaryAttack( void )

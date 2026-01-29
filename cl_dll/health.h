@@ -120,8 +120,8 @@ public:
 	float m_fAttackFront, m_fAttackRear, m_fAttackLeft, m_fAttackRight;
 
 private:
-	HSPRITE m_hSprite;
-	HSPRITE m_hDamage;
+	HL_SPRITE m_hSprite;
+	HL_SPRITE m_hDamage;
 	
 	DAMAGE_IMAGE m_dmg[NUM_DMG_TYPES];
 	int	m_bitsDamage;

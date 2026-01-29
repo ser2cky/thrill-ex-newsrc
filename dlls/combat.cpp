@@ -29,6 +29,9 @@
 #include "animation.h"
 #include "weapons.h"
 #include "func_break.h"
+// ThrillEX Addition/Edit Start
+#include "usermsg.h"
+// ThrillEX Addition/Edit End
 
 extern DLL_GLOBAL Vector		g_vecAttackDir;
 extern DLL_GLOBAL int			g_iSkillLevel;
@@ -887,11 +890,8 @@ int CBaseMonster :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker,
 		}
 	}
 
-	// if this is a player, move him around!
-	if ( ( !FNullEnt( pevInflictor ) ) && (pev->movetype == MOVETYPE_WALK) && (!pevAttacker || pevAttacker->solid != SOLID_TRIGGER) )
-	{
-		pev->velocity = pev->velocity + vecDir * -DamageForce( flDamage );
-	}
+	// ThrillEX Addition/Edit Start
+	// ThrillEX Addition/Edit End
 
 	// do the damage
 	pev->health -= flTake;
@@ -1450,8 +1450,9 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 			case BULLET_MONSTER_9MM:
 			case BULLET_MONSTER_12MM:
 			default:
-				MESSAGE_BEGIN( MSG_PAS, SVC_TEMPENTITY, vecTracerSrc );
-					WRITE_BYTE( TE_TRACER );
+				// ThrillEX Addition/Edit Start
+				MESSAGE_BEGIN( MSG_PAS, gmsgTempEntity, vecTracerSrc );
+					WRITE_BYTE( THRILLEX_TRACER );
 					WRITE_COORD( vecTracerSrc.x );
 					WRITE_COORD( vecTracerSrc.y );
 					WRITE_COORD( vecTracerSrc.z );
@@ -1459,6 +1460,7 @@ void CBaseEntity::FireBullets(ULONG cShots, Vector vecSrc, Vector vecDirShooting
 					WRITE_COORD( tr.vecEndPos.y );
 					WRITE_COORD( tr.vecEndPos.z );
 				MESSAGE_END();
+				// ThrillEX Addition/Edit End
 				break;
 			}
 		}

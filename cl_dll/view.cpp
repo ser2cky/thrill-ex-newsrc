@@ -461,18 +461,26 @@ V_UpdatePalette
 
 void V_UpdatePalette (struct ref_params_s* pparams)
 {
-	int		i, j;
-	float	r,g,b,a;
+	int			i, j;
+	qboolean	new_cshift;
 	
+	new_cshift = false;
+
 	for (i=0 ; i<NUM_CSHIFTS ; i++)
 	{
 		if (cshifts[i].percent != prev_cshifts[i].percent)
+		{
+			new_cshift = true;
 			prev_cshifts[i].percent = cshifts[i].percent;
+		}
 
 		for (j=0 ; j<3 ; j++)
 		{
 			if (cshifts[i].destcolor[j] != prev_cshifts[i].destcolor[j])
+			{
+				new_cshift = true;
 				prev_cshifts[i].destcolor[j] = cshifts[i].destcolor[j];
+			}
 		}
 	}
 	
@@ -486,19 +494,19 @@ void V_UpdatePalette (struct ref_params_s* pparams)
 	if (cshifts[CSHIFT_BONUS].percent <= 0)
 		cshifts[CSHIFT_BONUS].percent = 0;
 
+	gHUD.m_GeneralHud.m_flScreenTint[0] = v_blend[0] * 255.0f;
+	gHUD.m_GeneralHud.m_flScreenTint[1] = v_blend[1] * 255.0f;
+	gHUD.m_GeneralHud.m_flScreenTint[2] = v_blend[2] * 255.0f;
+	gHUD.m_GeneralHud.m_flScreenTint[3] = v_blend[3] * 255.0f;
+
+	if (!new_cshift)
+	{
+		v_blend[0] = v_blend[1] = v_blend[2] = v_blend[3] = 0.0f;
+		return;
+	}
+
 	V_CalcBlend ();
-
-	a = v_blend[3];
-	r = 255*v_blend[0]*a;
-	g = 255*v_blend[1]*a;
-	b = 255*v_blend[2]*a;
-
-	gHUD.m_GeneralHud.m_flScreenTint[0] = r;
-	gHUD.m_GeneralHud.m_flScreenTint[1] = g;
-	gHUD.m_GeneralHud.m_flScreenTint[2] = b;
-	gHUD.m_GeneralHud.m_flScreenTint[3] = a * 255.0f;
-
-	//gEngfuncs.pfnConsolePrint(va("r = %.2f  g = %.2f  b = %.2f  a = %.2f\n", r, g, b, a * 255));
+	gEngfuncs.Con_Printf("view: r:%.2f g:%.2f b:%.2f a:%.2f\n", v_blend[0], v_blend[1], v_blend[2], v_blend[3]);
 }
 
 // ThrillEX Addition/Edit End

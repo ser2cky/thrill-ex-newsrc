@@ -49,7 +49,7 @@ inline struct cvar_s *CVAR_CREATE( const char *cv, const char *val, const int fl
 #define SPR_Frames (*gEngfuncs.pfnSPR_Frames)
 #define SPR_GetList (*gEngfuncs.pfnSPR_GetList)
 
-extern void TRI_SprSet(HSPRITE spr, int r, int g, int b);
+extern void TRI_SprSet(HL_SPRITE spr, int r, int g, int b);
 extern void TRI_SprDrawAdditive(int frame, int x, int y, wrect_t* prc);
 extern void TRI_SprDrawHoles(int frame, int x, int y, wrect_t* prc);
 extern void TRI_FillRGBA(float x, float y, float width, float height, int r, int g, int b, int a, int additive = 1);
@@ -95,8 +95,8 @@ extern void TRI_DrawConsoleString(float x, float y, const char* string, float wi
 
 
 // Gets the height & width of a sprite,  at the specified frame
-inline int SPR_Height( HSPRITE x, int f )	{ return gEngfuncs.pfnSPR_Height(x, f); }
-inline int SPR_Width( HSPRITE x, int f )	{ return gEngfuncs.pfnSPR_Width(x, f); }
+inline int SPR_Height( HL_SPRITE x, int f )	{ return gEngfuncs.pfnSPR_Height(x, f); }
+inline int SPR_Width( HL_SPRITE x, int f )	{ return gEngfuncs.pfnSPR_Width(x, f); }
 
 inline 	client_textmessage_t	*TextMessageGet( const char *pName ) { return gEngfuncs.pfnTextMessageGet( pName ); }
 inline 	int						TextMessageDrawChar( int x, int y, int number, int r, int g, int b ) 
@@ -169,7 +169,7 @@ inline void UnpackRGB(int &r, int &g, int &b, unsigned long ulRGB)\
 	b = ulRGB & 0xFF;\
 }
 
-HSPRITE LoadSprite(const char *pszName);
+HL_SPRITE LoadSprite(const char *pszName);
 
 // ThrillEX Addition/Edit Start
 

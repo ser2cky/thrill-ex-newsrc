@@ -176,6 +176,14 @@ void DecalGunshot( TraceResult *pTrace, int iBulletType )
 		case BULLET_PLAYER_CROWBAR:
 			// wall decal
 			UTIL_DecalTrace( pTrace, DamageDecal( pEntity, DMG_CLUB ) );
+
+			MESSAGE_BEGIN(MSG_BROADCAST, SVC_TEMPENTITY);
+				WRITE_BYTE(TE_GUNSHOT);
+				WRITE_COORD(pTrace->vecEndPos.x);
+				WRITE_COORD(pTrace->vecEndPos.y);
+				WRITE_COORD(pTrace->vecEndPos.z);
+			MESSAGE_END();
+
 			break;
 		}
 		// ThrillEX Addition/Edit End
@@ -798,10 +806,9 @@ int CBasePlayerWeapon::UpdateClientData( CBasePlayer *pPlayer )
 
 void CBasePlayerWeapon::SendWeaponAnim( int iAnim, int skiplocal, int body )
 {
-	if ( UseDecrement() )
-		skiplocal = 1;
-	else
-		skiplocal = 0;
+	// ThrillEX Addition/Edit Start
+	skiplocal = ( !m_iForceAnim && UseDecrement() ) != 0;
+	// ThrillEX Addition/Edit End
 
 	m_pPlayer->pev->weaponanim = iAnim;
 
@@ -919,6 +926,27 @@ BOOL CBasePlayerWeapon :: CanDeploy( void )
 
 	return TRUE;
 }
+
+// ThrillEX Addition/Edit Start
+void CBasePlayerWeapon::DefaultHolster( int iAnim, float flDelay, int skiplocal, int body )
+{
+	SendWeaponAnim(iAnim, skiplocal, body);
+
+	// TODO JAN-27-26: Add CVar that controls how long the holster's gonna be...
+	// it'll default to 0.5f...
+
+	if (!flDelay)
+	{
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + 0.5f;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 1.0f;
+	}
+	else
+	{
+		m_pPlayer->m_flNextAttack = UTIL_WeaponTimeBase() + flDelay;
+		m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + flDelay + 1.0f;
+	}
+}
+// ThrillEX Addition/Edit End
 
 BOOL CBasePlayerWeapon :: DefaultDeploy( char *szViewModel, char *szWeaponModel, int iAnim, char *szAnimExt, int skiplocal /* = 0 */, int body )
 {

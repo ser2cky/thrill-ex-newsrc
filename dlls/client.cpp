@@ -671,7 +671,11 @@ void ClientPrecache( void )
 	// setup precaches always needed
 	PRECACHE_SOUND("player/sprayer.wav");			// spray paint sound for PreAlpha
 	
-	// PRECACHE_SOUND("player/pl_jumpland2.wav");		// UNDONE: play 2x step sound
+	// ThrillEX Addition/Edit Start
+	PRECACHE_SOUND("player/pl_jump1.wav");
+	PRECACHE_SOUND("player/pl_jump2.wav");
+	PRECACHE_SOUND("player/pl_jumpland2.wav");
+	// ThrillEX Addition/Edit End
 	
 	PRECACHE_SOUND("player/pl_fallpain2.wav");		
 	PRECACHE_SOUND("player/pl_fallpain3.wav");		

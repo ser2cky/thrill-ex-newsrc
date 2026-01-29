@@ -58,6 +58,15 @@ public:
 
 // ThrillEX Addition/Edit Start
 
+// SERECKY JAN-27-26: New weaponstate stuff.
+// Used to free up variables for weapon prediction...
+
+#define WS_DEPLOY			0
+#define WS_READY			1
+#define WS_RELOAD			2
+#define WS_HOLSTER			3
+#define WS_SPECIAL			4
+
 // constant items
 #define ITEM_HEALTHKIT		1
 #define ITEM_ANTIDOTE		2
@@ -282,8 +291,9 @@ public:
 	int			iWeight( void )		{ return ItemInfoArray[ m_iId ].iWeight; }
 	int			iFlags( void )		{ return ItemInfoArray[ m_iId ].iFlags; }
 
-	// int		m_iIdPrimary;										// Unique Id for primary ammo
-	// int		m_iIdSecondary;										// Unique Id for secondary ammo
+	// ThrillEX Addition/Edit Start
+	int			m_iForceAnim = 0;
+	// ThrillEX Addition/Edit End
 };
 
 
@@ -324,6 +334,10 @@ public:
 	BOOL DefaultDeploy( char *szViewModel, char *szWeaponModel, int iAnim, char *szAnimExt, int skiplocal = 0, int body = 0 );
 	int DefaultReload( int iClipSize, int iAnim, float fDelay, int body = 0 );
 
+	// ThrillEX Addition/Edit Start
+	void DefaultHolster( int iAnim, float flDelay = 0.0f, int skiplocal = 0, int body = 0 );
+	// ThrillEX Addition/Edit End
+
 	virtual void ItemPostFrame( void );	// called each frame by the player PostThink
 	// called by CBasePlayerWeapons ItemPostFrame()
 	virtual void PrimaryAttack( void ) { return; }				// do "+ATTACK"
@@ -356,7 +370,6 @@ public:
 	int		m_fInReload;										// Are we in the middle of a reload;
 
 	int		m_iDefaultAmmo;// how much ammo you get when you pick up this weapon as placed by a level designer.
-
 };
 
 
@@ -536,15 +549,16 @@ void LoadVModel ( char *szViewModel, CBasePlayer *m_pPlayer );
 class CGlock : public CBasePlayerWeapon
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int iItemSlot( void ) { return 2; }
-	int GetItemInfo(ItemInfo *p);
+	void	Spawn( void );
+	void	Precache( void );
+	int		iItemSlot( void ) { return 2; }
+	int		GetItemInfo(ItemInfo *p);
 
-	void PrimaryAttack( void );
-	BOOL Deploy( void );
-	void Reload( void );
-	void WeaponIdle( void );
+	BOOL	Deploy( void );
+	void	Holster( int skiplocal = 0 );
+	void	PrimaryAttack( void );
+	void	Reload( void );
+	void	WeaponIdle( void );
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -564,19 +578,20 @@ private:
 class CCrowbar : public CBasePlayerWeapon
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int iItemSlot( void ) { return 1; }
-	void EXPORT SwingAgain( void );
-	void EXPORT Smack( void );
-	int GetItemInfo(ItemInfo *p);
+	void	Spawn( void );
+	void	Precache( void );
+	int		iItemSlot( void ) { return 1; }
+	void	EXPORT SwingAgain( void );
+	void	EXPORT Smack( void );
+	int		GetItemInfo(ItemInfo *p);
 
-	void PrimaryAttack( void );
-	int Swing( int fFirst );
-	BOOL Deploy( void );
-	void Holster( int skiplocal = 0 );
-	int m_iSwing;
-	TraceResult m_trHit;
+	BOOL	Deploy( void );
+	void	Holster( int skiplocal = 0 );
+	void	PrimaryAttack( void );
+	int		Swing( int fFirst );
+
+	int				m_iSwing;
+	TraceResult		m_trHit;
 
 	virtual BOOL UseDecrement( void )
 	{ 
@@ -593,20 +608,22 @@ private:
 class CPython : public CBasePlayerWeapon
 {
 public:
-	void Spawn( void );
-	void Precache( void );
-	int iItemSlot( void ) { return 2; }
-	int GetItemInfo(ItemInfo *p);
-	int AddToPlayer( CBasePlayer *pPlayer );
-	void PrimaryAttack( void );
-	void SecondaryAttack( void );
-	BOOL Deploy( void );
-	void Holster( int skiplocal = 0 );
-	void Reload( void );
-	void WeaponIdle( void );
-	float m_flSoundDelay;
+	void	Spawn( void );
+	void	Precache( void );
+	int		iItemSlot( void ) { return 2; }
+	int		GetItemInfo(ItemInfo *p);
+	int		AddToPlayer( CBasePlayer *pPlayer );
 
-	BOOL m_fInZoom;// don't save this. 
+	void	PrimaryAttack( void );
+	void	SecondaryAttack( void );
+	BOOL	Deploy( void );
+	void	Holster( int skiplocal = 0 );
+	void	Reload( void );
+	void	WeaponIdle( void );
+	void	ItemPostFrame( void );
+
+	float	m_flSoundDelay;
+	BOOL	m_fInZoom;// don't save this. 
 
 	virtual BOOL UseDecrement( void )
 	{ 

@@ -33,7 +33,12 @@
 
 // ThrillEX Addition/Edit Start
 extern void CustomTent_Init(void);
+extern void CustomTent_Reset(void);
+
 extern model_s* TRI_pModel;
+int g_iForce320;
+static int g_iRes;
+
 // ThrillEX Addition/Edit End
 
 class CHLVoiceStatusHelper : public IVoiceStatusHelper
@@ -318,6 +323,8 @@ void CHud :: Init( void )
 
 	// ThrillEX Addition/Edit Start
 	m_pCvarScale = CVAR_CREATE("hud_scale", "0", FCVAR_ARCHIVE);
+	m_pCvarForce320 = CVAR_CREATE("force_320", "0", FCVAR_ARCHIVE);
+	gEngfuncs.Con_Printf(" init says res cvar is %d\n", g_iForce320);
 	// ThrillEX Addition/Edit End
 
 	cl_lw = gEngfuncs.pfnGetCvarPointer( "cl_lw" );
@@ -420,16 +427,30 @@ void CHud :: VidInit( void )
 	m_hsprLogo = 0;	
 	m_hsprCursor = 0;
 
-	if (ScreenWidth < 640)
-		m_iRes = 320;
-	else
-		m_iRes = 640;
+	// ThrillEX Addition/Edit Start
+	g_iForce320 = m_pCvarForce320->value;
+	m_iRes = GetResolution();
+
+	if ( g_iRes == 0 )
+		g_iRes = m_iRes;
+
+	if (m_iRes != g_iRes)
+	{
+		delete[] m_rghSprites;
+		delete[] m_rgrcRects;
+		delete[] m_rgszSpriteNames;
+	}
+
+	//gEngfuncs.Con_Printf("Vid init says res cvar is %d\n", g_iForce320);
+
+	// ThrillEX Addition/Edit End
 
 	// Only load this once
-	if ( !m_pSpriteList )
+	if ( !m_pSpriteList || (m_iRes != g_iRes) )
 	{
 		// we need to load the hud.txt, and all sprites within
 		m_pSpriteList = SPR_GetList("sprites/hud.txt", &m_iSpriteCountAllRes);
+		g_iRes = m_iRes;
 
 		if (m_pSpriteList)
 		{
@@ -447,7 +468,7 @@ void CHud :: VidInit( void )
 			}
 
 			// allocated memory for sprite handle arrays
- 			m_rghSprites = new HSPRITE[m_iSpriteCount];
+ 			m_rghSprites = new HL_SPRITE[m_iSpriteCount];
 			m_rgrcRects = new wrect_t[m_iSpriteCount];
 			m_rgszSpriteNames = new char[m_iSpriteCount * MAX_SPRITE_NAME_LENGTH];
 
@@ -704,4 +725,13 @@ float CHud::GetSensitivity( void )
 	return m_flMouseSensitivity;
 }
 
+// ThrillEX Addition/Edit Start
 
+int CHud::GetResolution( void )
+{
+	if ( ScreenWidth < 640 || g_iForce320 )
+		return 320;
+	return 640;
+}
+
+// ThrillEX Addition/Edit End

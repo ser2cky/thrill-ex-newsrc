@@ -357,10 +357,12 @@ public:
 	int m_fireState;
 
 	// ThrillEX Addition/Edit Start
+
 	virtual BOOL FCanKnockBack( ) 
 	{	// SERECKY JAN-20-26: can't knockback bsp models and non-moving entities.
 		return !IsBSPModel() && (pev->movetype != MOVETYPE_NONE); 
 	}
+
 	// ThrillEX Addition/Edit End
 };
 

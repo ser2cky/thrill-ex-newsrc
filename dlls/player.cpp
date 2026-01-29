@@ -122,6 +122,9 @@ TYPEDESCRIPTION	CBasePlayer::m_playerSaveData[] =
 	DEFINE_FIELD( CBasePlayer, m_iFOV, FIELD_INTEGER ),
 
 	// ThrillEX Addition/Edit Start
+	
+	DEFINE_FIELD( CBasePlayer, m_iWeaponState, FIELD_INTEGER ),
+
 	// SERECKY JAN-20-26: Removed all the unused code here because it hurts my eyes.
 	// ThrillEX Addition/Edit End
 };	
@@ -296,7 +299,20 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		return 0;
 	// go take the damage first
 
-	
+	// figure momentum add (don't let hurt brushes or other triggers move player)
+	if ((!FNullEnt(pevInflictor)) && (pev->movetype == MOVETYPE_WALK || pev->movetype == MOVETYPE_STEP) && (pevAttacker->solid != SOLID_TRIGGER) )
+	{
+		Vector vecDir = pev->origin - (pevInflictor->absmin + pevInflictor->absmax) * 0.5;
+		vecDir = vecDir.Normalize();
+
+		float flForce = flDamage * ((32 * 32 * 72.0) / (pev->size.x * pev->size.y * pev->size.z)) * 5;
+		
+		if (flForce > 1000.0) 
+			flForce = 1000.0;
+
+		pev->velocity = pev->velocity + vecDir * flForce;
+	}
+
 	CBaseEntity *pAttacker = CBaseEntity::Instance(pevAttacker);
 
 	if ( !g_pGameRules->FPlayerCanTakeDamage( this, pAttacker ) )
@@ -460,8 +476,6 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 		}
 	}
 
-	pev->punchangle.x = -2;
-
 	if (fTookDamage && !ftrivial && fmajor && flHealthPrev >= 75) 
 	{
 		// first time we take major damage...
@@ -488,17 +502,17 @@ int CBasePlayer :: TakeDamage( entvars_t *pevInflictor, entvars_t *pevAttacker, 
 
 	// if we're taking time based damage, warn about its continuing effects
 	if (fTookDamage && (bitsDamageType & DMG_TIMEBASED) && flHealthPrev < 75)
+	{
+		if (flHealthPrev < 50)
 		{
-			if (flHealthPrev < 50)
-			{
-				if (!RANDOM_LONG(0,3))
-					SetSuitUpdate("!HEV_DMG7", FALSE, SUIT_NEXT_IN_5MIN); //seek medical attention
-			}
-			else
-				SetSuitUpdate("!HEV_HLTH1", FALSE, SUIT_NEXT_IN_10MIN);	// health dropping
+			if (!RANDOM_LONG(0,3))
+				SetSuitUpdate("!HEV_DMG7", FALSE, SUIT_NEXT_IN_5MIN); //seek medical attention
 		}
+		else
+			SetSuitUpdate("!HEV_HLTH1", FALSE, SUIT_NEXT_IN_10MIN);	// health dropping
+	}
 
-	return fTookDamage;
+	return 1;
 }
 
 //=========================================================
@@ -2841,19 +2855,18 @@ void CBasePlayer::SelectNextItem( int iItem )
 
 	ResetAutoaim( );
 
-	// FIX, this needs to queue them up and delay
-	if (m_pActiveItem)
-	{
-		m_pActiveItem->Holster( );
-	}
-	
-	m_pActiveItem = pItem;
+	// ThrillEX Addition/Edit Start
 
 	if (m_pActiveItem)
 	{
-		m_pActiveItem->Deploy( );
-		m_pActiveItem->UpdateItemInfo( );
+		m_iWeaponState = WS_HOLSTER;
+		m_pActiveItem->m_iForceAnim = 1;
+		m_pActiveItem->Holster();
+		m_pActiveItem->m_iForceAnim = 0;
 	}
+	
+	m_pNextActiveItem = pItem;
+	// ThrillEX Addition/Edit End
 }
 
 void CBasePlayer::SelectItem(const char *pstr)
@@ -2890,18 +2903,22 @@ void CBasePlayer::SelectItem(const char *pstr)
 
 	ResetAutoaim( );
 
-	// FIX, this needs to queue them up and delay
-	if (m_pActiveItem)
-		m_pActiveItem->Holster( );
-	
-	m_pLastItem = m_pActiveItem;
-	m_pActiveItem = pItem;
+	// ThrillEX Addition/Edit Start
 
 	if (m_pActiveItem)
 	{
-		m_pActiveItem->Deploy( );
-		m_pActiveItem->UpdateItemInfo( );
+		m_iWeaponState = WS_HOLSTER;
+		m_pActiveItem->m_iForceAnim = 1;
+		m_pActiveItem->Holster();
+		m_pActiveItem->m_iForceAnim = 0;
 	}
+	
+	// SERECKY JAN-28-26: don't make our last item the one that's holstering!!!
+	if (!m_pNextActiveItem)
+		m_pLastItem = m_pActiveItem;
+	m_pNextActiveItem = pItem;
+
+	// ThrillEX Addition/Edit End
 }
 
 
@@ -2917,17 +2934,28 @@ void CBasePlayer::SelectLastItem(void)
 		return;
 	}
 
+	if ( m_pNextActiveItem )
+	{
+		return;
+	}
+
 	ResetAutoaim( );
 
-	// FIX, this needs to queue them up and delay
+	// ThrillEX Addition/Edit Start
+
 	if (m_pActiveItem)
-		m_pActiveItem->Holster( );
+	{
+		m_iWeaponState = WS_HOLSTER;
+		m_pActiveItem->m_iForceAnim = 1;
+		m_pActiveItem->Holster();
+		m_pActiveItem->m_iForceAnim = 0;
+	}
 	
 	CBasePlayerItem *pTemp = m_pActiveItem;
-	m_pActiveItem = m_pLastItem;
+	m_pNextActiveItem = m_pLastItem;
 	m_pLastItem = pTemp;
-	m_pActiveItem->Deploy( );
-	m_pActiveItem->UpdateItemInfo( );
+
+	// ThrillEX Addition/Edit End
 }
 
 //==============================================
@@ -3631,6 +3659,23 @@ void CBasePlayer::ItemPostFrame()
 
 	if (!m_pActiveItem)
 		return;
+
+	// ThrillEX Addition/Edit Start
+
+	// SERECKY JAN-27-26: Redid weapon holstering to rely on variables that get sent to
+	// the client. m_iWeaponState now takes up iuser4...
+
+	if ( m_pNextActiveItem && ( m_iWeaponState == WS_HOLSTER ) )
+	{
+		m_pActiveItem = m_pNextActiveItem;
+		m_pNextActiveItem = NULL;
+		m_pActiveItem->m_iForceAnim = 1;
+		m_pActiveItem->Deploy();
+		m_pActiveItem->m_iForceAnim = 0;
+		m_pActiveItem->UpdateItemInfo();
+		m_iWeaponState = WS_DEPLOY;
+	}
+	// ThrillEX Addition/Edit End
 
 	m_pActiveItem->ItemPostFrame( );
 }

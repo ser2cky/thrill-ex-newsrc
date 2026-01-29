@@ -13,6 +13,17 @@
 *
 ****/
 
+//=======================================
+//	hl_wpn_glock.cpp
+//
+//	History:
+// 
+//	JAN-27-26: made glock have the same
+//	accuracy as the alpha's and also added
+//	holstering code to it too.
+//
+//=======================================
+
 #include "extdll.h"
 #include "util.h"
 #include "cbase.h"
@@ -20,8 +31,6 @@
 #include "weapons.h"
 #include "nodes.h"
 #include "player.h"
-
-// ThrillEX Addition/Edit Start
 
 enum glock_e {
 	GLOCK_IDLE1 = 0,
@@ -33,11 +42,16 @@ enum glock_e {
 	GLOCK_RELOAD_NOT_EMPTY,
 	GLOCK_DRAW,
 	GLOCK_HOLSTER,
-	GLOCK_ADD_SILENCER
 };
 
 LINK_ENTITY_TO_CLASS( weapon_glock, CGlock );
 LINK_WEAPON_TO_CLASS( weapon_9mmhandgun, CGlock );
+
+/*
+======================================
+Spawn
+======================================
+*/
 
 void CGlock::Spawn( )
 {
@@ -50,6 +64,12 @@ void CGlock::Spawn( )
 
 	FallInit();// get ready to fall down.
 }
+
+/*
+======================================
+Precache
+======================================
+*/
 
 void CGlock::Precache( void )
 {
@@ -68,6 +88,12 @@ void CGlock::Precache( void )
 	m_usFireGlock1 = PRECACHE_EVENT( 1, "events/glock1.sc" );
 }
 
+/*
+======================================
+GetItemInfo
+======================================
+*/
+
 int CGlock::GetItemInfo(ItemInfo *p)
 {
 	p->pszName = STRING(pev->classname);
@@ -85,11 +111,36 @@ int CGlock::GetItemInfo(ItemInfo *p)
 	return 1;
 }
 
-BOOL CGlock::Deploy( )
+/*
+======================================
+Deploy
+======================================
+*/
+
+BOOL CGlock::Deploy( void )
 {
-	// pev->body = 1;
-	return DefaultDeploy( "models/v_glock.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded", /*UseDecrement() ? 1 : 0*/ 0 );
+	return DefaultDeploy( "models/v_glock.mdl", "models/p_9mmhandgun.mdl", GLOCK_DRAW, "onehanded" );
 }
+
+/*
+======================================
+Holster
+======================================
+*/
+
+void CGlock::Holster( int skiplocal )
+{
+	DefaultHolster(GLOCK_HOLSTER);
+}
+
+/*
+======================================
+PrimaryAttack
+
+SERECKY JAN-27-26: Using the Alpha bullet spread values
+for that REALNESS.
+======================================
+*/
 
 void CGlock::PrimaryAttack( void )
 {
@@ -100,7 +151,6 @@ void CGlock::PrimaryAttack( void )
 			PlayEmptySound();
 			m_flNextPrimaryAttack = UTIL_WeaponTimeBase() + 0.2;
 		}
-
 		return;
 	}
 
@@ -129,10 +179,22 @@ void CGlock::PrimaryAttack( void )
 	m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + UTIL_SharedRandomFloat( m_pPlayer->random_seed, 10, 15 );
 }
 
+/*
+======================================
+Reload
+======================================
+*/
+
 void CGlock::Reload( void )
 {
 	DefaultReload( 12, GLOCK_RELOAD, 1.5 );
 }
+
+/*
+======================================
+WeaponIdle
+======================================
+*/
 
 void CGlock::WeaponIdle( void )
 {
@@ -152,21 +214,27 @@ void CGlock::WeaponIdle( void )
 		if (flRand <= 0.3 + 0 * 0.75)
 		{
 			iAnim = GLOCK_IDLE3;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 49.0 / 16;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + ( 49.0f / 16.0f );
 		}
 		else if (flRand <= 0.6 + 0 * 0.875)
 		{
 			iAnim = GLOCK_IDLE1;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 60.0 / 16.0;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + ( 60.0f / 16.0f );
 		}
 		else
 		{
 			iAnim = GLOCK_IDLE2;
-			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + 40.0 / 16.0;
+			m_flTimeWeaponIdle = UTIL_WeaponTimeBase() + ( 40.0f / 16.0f );
 		}
 		SendWeaponAnim( iAnim, 1 );
 	}
 }
+
+/*
+======================================
+CGlockAmmo
+======================================
+*/
 
 class CGlockAmmo : public CBasePlayerAmmo
 {
@@ -193,5 +261,3 @@ class CGlockAmmo : public CBasePlayerAmmo
 };
 LINK_ENTITY_TO_CLASS( ammo_glockclip, CGlockAmmo );
 LINK_ENTITY_TO_CLASS( ammo_9mmclip, CGlockAmmo );
-
-// ThrillEX Addition/Edit End

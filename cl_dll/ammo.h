@@ -40,19 +40,19 @@ struct WEAPON
 
 	int		iCount;		// # of itesm in plist
 
-	HSPRITE hActive;
+	HL_SPRITE hActive;
 	wrect_t rcActive;
 
-	HSPRITE hInactive;
+	HL_SPRITE hInactive;
 	wrect_t rcInactive;
 
-	HSPRITE hAlphaIcon;		// NEW - serecky 1.2.26
+	HL_SPRITE hAlphaIcon;		// NEW - serecky 1.2.26
 	wrect_t rcAlphaIcon;
 
-	HSPRITE hQuakeAmmo1;	// SERECKY JAN-18-26: NEW!!!
+	HL_SPRITE hQuakeAmmo1;	// SERECKY JAN-18-26: NEW!!!
 	wrect_t rcQuakeAmmo1;
 
-	HSPRITE hQuakeAmmo2;	// SERECKY JAN-18-26: NEW!!!
+	HL_SPRITE hQuakeAmmo2;	// SERECKY JAN-18-26: NEW!!!
 	wrect_t rcQuakeAmmo2;
 };
 
@@ -69,9 +69,9 @@ typedef struct hud_item_s
 	int			iMax;
 	int			iFlags;
 
-	HSPRITE		hIcon;
+	HL_SPRITE		hIcon;
 	wrect_t		rcIcon;
-	HSPRITE		hAlphaIcon;
+	HL_SPRITE		hAlphaIcon;
 	wrect_t		rcAlphaIcon;
 } HUD_ITEM;
 // ThrillEX Addition/Edit End

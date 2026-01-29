@@ -2537,7 +2537,12 @@ void PM_Jump (void)
 	}
 	else
 	{
-		PM_PlayStepSound( PM_MapTextureTypeStepType( pmove->chtexturetype ), 1.0 );
+		// ThrillEX Addition/Edit Start
+		const char* sounds[2] = { "player/pl_jump1.wav", "player/pl_jump2.wav" };
+		pmove->PM_PlaySound(CHAN_BODY, sounds[pmove->RandomLong(0, 1)], 1.0f, ATTN_NORM, 0, PITCH_NORM);
+		// ThrillEX Addition/Edit End
+
+		//PM_PlayStepSound( PM_MapTextureTypeStepType( pmove->chtexturetype ), 1.0 );
 	}
 
 	// See if user can super long jump?
