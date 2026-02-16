@@ -12,8 +12,13 @@
 *   use or distribution of this code by or to any unlicensed person is illegal.
 *
 ****/
+
 //=========================================================
-// hgrunt
+//	ThrillEX hgrunt.cpp Changes
+// 
+//	FEB-10-26: Rewrote the FindLateralCover code to work a lot
+//	better...
+//	
 //=========================================================
 
 //=========================================================
@@ -49,7 +54,7 @@ extern DLL_GLOBAL int		g_iSkillLevel;
 //=========================================================
 // monster-specific DEFINE's
 //=========================================================
-#define	GRUNT_CLIP_SIZE					36 // how many bullets in a clip? - NOTE: 3 round burst sound, so keep as 3 * x!
+#define	GRUNT_CLIP_SIZE					5 // how many bullets in a clip? - NOTE: 3 round burst sound, so keep as 3 * x!
 #define GRUNT_VOL						0.35		// volume of grunt sounds
 #define GRUNT_ATTN						ATTN_NORM	// attenutation of grunt sentences
 #define HGRUNT_LIMP_HEALTH				20
@@ -183,6 +188,10 @@ public:
 	int		m_iShotgunShell;
 
 	int		m_iSentence;
+
+	BOOL FindLateralCover( const Vector &vecThreat, const Vector &vecViewOffset );
+	void EXPORT MonsterThink( void );
+	int m_iForceStrafe;
 
 	static const char *pGruntSentences[];
 };
@@ -798,9 +807,7 @@ void CHGrunt :: Shoot ( void )
 
 	Vector	vecShellVelocity = gpGlobals->v_right * RANDOM_FLOAT(40,90) + gpGlobals->v_up * RANDOM_FLOAT(75,200) + gpGlobals->v_forward * RANDOM_FLOAT(-40, 40);
 	EjectBrass ( vecShootOrigin - vecShootDir * 24, vecShellVelocity, pev->angles.y, m_iBrassShell, TE_BOUNCE_SHELL); 
-	// ThrillEX Addition/Edit Start
-	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5, 1 ); // shoot +-5 degrees
-	// ThrillEX Addition/Edit End
+	FireBullets(1, vecShootOrigin, vecShootDir, VECTOR_CONE_10DEGREES, 2048, BULLET_MONSTER_MP5 ); // shoot +-5 degrees
 
 	pev->effects |= EF_MUZZLEFLASH;
 	
@@ -996,7 +1003,7 @@ void CHGrunt :: Spawn()
 	m_flNextPainTime	= gpGlobals->time;
 	m_iSentence			= HGRUNT_SENT_NONE;
 
-	m_afCapability		= bits_CAP_SQUAD | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP;
+	m_afCapability		= bits_CAP_SQUAD | bits_CAP_TURN_HEAD | bits_CAP_DOORS_GROUP | bits_CAP_STRAFE;
 
 	m_fEnemyEluded		= FALSE;
 	m_fFirstEncounter	= TRUE;// this is true when the grunt spawns, because he hasn't encountered an enemy yet.
@@ -1106,7 +1113,35 @@ void CHGrunt :: StartTask ( Task_t *pTask )
 	case TASK_RUN_PATH:
 		// grunt no longer assumes he is covered if he moves
 		Forget( bits_MEMORY_INCOVER );
-		CSquadMonster ::StartTask( pTask );
+
+		if ( m_iForceStrafe )
+		{
+			Vector2D	vec2DirToPoint; 
+			Vector2D	vec2RightSide;
+
+			// to start strafing, we have to first figure out if the target is on the left side or right side
+			UTIL_MakeVectors ( pev->angles );
+
+			vec2DirToPoint = ( m_Route[ 0 ].vecLocation - pev->origin ).Make2D().Normalize();
+			vec2RightSide = gpGlobals->v_right.Make2D().Normalize();
+
+			if ( DotProduct ( vec2DirToPoint, vec2RightSide ) > 0 )
+			{
+				// strafe right
+				m_movementActivity = ACT_STRAFE_RIGHT;
+			}
+			else
+			{
+				// strafe left
+				m_movementActivity = ACT_STRAFE_LEFT;
+			}
+			TaskComplete();
+		}
+		else
+		{
+			CSquadMonster ::StartTask( pTask );
+		}
+
 		break;
 
 	case TASK_RELOAD:
@@ -1124,7 +1159,40 @@ void CHGrunt :: StartTask ( Task_t *pTask )
 			m_IdealActivity = ACT_GLIDE;
 		}
 		break;
+	case TASK_FIND_COVER_FROM_ENEMY:
+		{
+			entvars_t *pevCover;
 
+			if ( m_hEnemy == NULL )
+			{
+				// Find cover from self if no enemy available
+				pevCover = pev;
+//				TaskFail();
+//				return;
+			}
+			else
+				pevCover = m_hEnemy->pev;
+
+			if ( FindLateralCover( pevCover->origin, pevCover->view_ofs ) )
+			{
+				// try lateral first
+				m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
+				TaskComplete();
+			}
+			else if ( FindCover( pevCover->origin, pevCover->view_ofs, 0, CoverRadius() ) )
+			{
+				// then try for plain ole cover
+				ALERT(at_console, "finding cover instead\n");
+				m_flMoveWaitFinished = gpGlobals->time + pTask->flData;
+				TaskComplete();
+			}
+			else
+			{
+				// no coverwhatsoever.
+				TaskFail();
+			}
+			break;
+		}
 	default: 
 		CSquadMonster :: StartTask( pTask );
 		break;
@@ -1834,6 +1902,28 @@ Schedule_t	slGruntRepelLand[] =
 	},
 };
 
+//=========================================================
+// small flinch, played when minor damage is taken.
+//=========================================================
+
+Task_t tlGruntSmallFlinch[] =
+{
+	{ TASK_REMEMBER,			(float)bits_MEMORY_FLINCHED },
+	{ TASK_STOP_MOVING,			0	},
+	{ TASK_SMALL_FLINCH,		0	},
+	{ TASK_FIND_COVER_FROM_ENEMY,		0	},
+};
+
+Schedule_t	slGruntSmallFlinch[] =
+{
+	{
+		tlGruntSmallFlinch,
+		ARRAYSIZE ( tlGruntSmallFlinch ),
+		0,
+		0,
+		"Small Flinch"
+	},
+};
 
 DEFINE_CUSTOM_SCHEDULES( CHGrunt )
 {
@@ -1858,6 +1948,7 @@ DEFINE_CUSTOM_SCHEDULES( CHGrunt )
 	slGruntRepel,
 	slGruntRepelAttack,
 	slGruntRepelLand,
+	slGruntSmallFlinch,
 };
 
 IMPLEMENT_CUSTOM_SCHEDULES( CHGrunt, CSquadMonster );
@@ -2366,6 +2457,10 @@ Schedule_t* CHGrunt :: GetScheduleOfType ( int Type )
 		{
 			return &slGruntRepelLand[ 0 ];
 		}
+	case SCHED_SMALL_FLINCH:
+		{
+			return &slGruntSmallFlinch[ 0 ];
+		}
 	default:
 		{
 			return CSquadMonster :: GetScheduleOfType ( Type );
@@ -2373,6 +2468,74 @@ Schedule_t* CHGrunt :: GetScheduleOfType ( int Type )
 	}
 }
 
+//===============================
+//	FindLateralCover
+//	Improved version of "FindLateralCover" that
+//	makes the Grunts strafe to somewhere more reasonable.
+//	Though if all else fails, we can just fall back to the
+//	original CheckLateralCover code.
+//===============================
+
+#define		NUM_OF_STRAFE_CHECKS	8
+#define		STRAFE_CHECK_DIST		32;
+
+BOOL CHGrunt::FindLateralCover( const Vector &vecThreat, const Vector &vecViewOffset )
+{
+	Vector vecSrc, vecEnd;
+	int i, j, iDist;
+	TraceResult tr;
+
+	Activity actStrafe[2] = { ACT_STRAFE_RIGHT, ACT_STRAFE_LEFT };
+	Vector vecStrafeDir;
+
+	iDist = STRAFE_CHECK_DIST;
+	
+	UTIL_MakeVectors(pev->angles);
+	vecSrc = pev->origin + vecViewOffset;
+
+	for ( i = 0; i < NUM_OF_STRAFE_CHECKS; i++ )
+	{
+		vecStrafeDir = gpGlobals->v_right * ((i + 1) * iDist);
+		vecEnd = vecSrc + vecStrafeDir;
+
+		for ( j = 0; j < 2; j++ )
+		{
+			UTIL_TraceLine( vecThreat + vecViewOffset, vecEnd, dont_ignore_monsters, ENT(pev), &tr );
+			UTIL_ParticleLine( vecThreat + vecViewOffset, tr.vecEndPos, 0.5f, 255, 255, 255 );
+			if ( tr.flFraction != 1.f )
+			{
+				if ( FValidateCover( vecEnd ) && CheckLocalMove( pev->origin, vecEnd, NULL, NULL ) == LOCALMOVE_VALID )
+				{
+					if ( MoveToLocation( actStrafe[j], 0, vecEnd ) )
+					{
+						m_iForceStrafe = 1;
+						ALERT( at_console, "HGRUNT: I can strafe!\n" );
+						return TRUE;
+					}
+				}
+			}
+			vecEnd = vecSrc - vecStrafeDir;
+		}
+	}
+
+	return FALSE;
+}
+
+void CHGrunt::MonsterThink( void )
+{
+	if ( m_movementActivity != ACT_STRAFE_LEFT || m_movementActivity != ACT_STRAFE_RIGHT ||
+		m_Activity != ACT_STRAFE_LEFT || m_Activity != ACT_STRAFE_RIGHT )
+	{
+		if ( m_iForceStrafe )
+		{
+			m_iForceStrafe = 0;
+			ALERT( at_console, "HGRUNT: m_iForceStrafe set to 0\n" );
+		}
+	}
+
+
+	CBaseMonster::MonsterThink();
+}
 
 //=========================================================
 // CHGruntRepel - when triggered, spawns a monster_human_grunt

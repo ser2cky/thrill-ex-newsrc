@@ -1393,6 +1393,21 @@ void UTIL_Smoke( const Vector &position, int width, int height, int count )
 	MESSAGE_END();
 	// ThrillEX Addition/Edit End
 }
+
+
+void UTIL_ParticleLine( const Vector &start, const Vector &end, float life, unsigned char r, unsigned char g, unsigned char b )
+{
+	MESSAGE_BEGIN( MSG_PVS, gmsgTempEntity, start );
+		WRITE_BYTE( THRILLEX_PARTICLE_LINE );
+		WRITE_COORD( start.x );
+		WRITE_COORD( start.y );
+		WRITE_COORD( start.z );
+		WRITE_COORD( end.x );
+		WRITE_COORD( end.y );
+		WRITE_COORD( end.z );
+	MESSAGE_END();
+}
+
 // ThrillEX Addition/Edit End
 
 void UTIL_Ricochet( const Vector &position, float scale )

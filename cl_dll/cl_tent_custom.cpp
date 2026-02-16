@@ -445,7 +445,7 @@ void R_ParticleSparks(vec3_t org)
 
 	for ( i = 0; i < 15; i++ )
 	{
-		p = gEngfuncs.pEfxAPI->R_AllocParticle(NULL);
+		p = gEngfuncs.pEfxAPI->R_AllocParticle(R_SparksCallback);
 
 		if (!p)
 			return;
@@ -630,11 +630,12 @@ void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed)
 		p->color = pcolor + gEngfuncs.pfnRandomFloat(0, 9);
 		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 
-		p->type = pt_clientcustom;
-		if (gEngfuncs.pfnRandomLong(0, 24) == 0)
-			p->callback = R_StickyBloodCallback;
-		else
-			p->callback = R_NormalBloodCallback;
+		p->type = pt_vox_slowgrav;
+		//p->type = pt_clientcustom;
+		//if (gEngfuncs.pfnRandomLong(0, 24) == 0)
+		//	p->callback = R_StickyBloodCallback;
+		//else
+		//	p->callback = R_NormalBloodCallback;
 
 		VectorCopy(org, p->org);
 		VectorCopy(dir, dirCopy);
@@ -658,11 +659,12 @@ void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed)
 		p->color = pcolor + gEngfuncs.pfnRandomFloat(0, 9);
 		gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 
-		p->type = pt_clientcustom;
-		if (gEngfuncs.pfnRandomLong(0, 24) == 0)
-			p->callback = R_StickyBloodCallback;
-		else
-			p->callback = R_NormalBloodCallback;
+		p->type = pt_vox_slowgrav;
+		//p->type = pt_clientcustom;
+		//if (gEngfuncs.pfnRandomLong(0, 24) == 0)
+		//	p->callback = R_StickyBloodCallback;
+		//else
+		//	p->callback = R_NormalBloodCallback;
 
 		VectorCopy(org, p->org);
 		VectorCopy(dir, dirCopy);
@@ -688,11 +690,12 @@ void R_BloodStream(vec_t* org, vec_t* dir, int pcolor, int speed)
 			p->color = pcolor + gEngfuncs.pfnRandomFloat(0, 9);
 			gEngfuncs.pEfxAPI->R_GetPackedColor(&p->packedColor, p->color);
 
-			p->type = pt_clientcustom;
-			if (gEngfuncs.pfnRandomLong(0, 24) == 0)
-				p->callback = R_StickyBloodCallback;
-			else
-				p->callback = R_NormalBloodCallback;
+			p->type = pt_vox_slowgrav;
+			//p->type = pt_clientcustom;
+			//if (gEngfuncs.pfnRandomLong(0, 24) == 0)
+			//	p->callback = R_StickyBloodCallback;
+			//else
+			//	p->callback = R_NormalBloodCallback;
 
 			p->org[0] = org[0] + gEngfuncs.pfnRandomFloat(-1, 1);
 			p->org[1] = org[1] + gEngfuncs.pfnRandomFloat(-1, 1);
@@ -769,11 +772,12 @@ void R_Blood(vec_t* org, vec_t* dir, int pcolor, int speed)
 			if (!p)
 				return;
 
-			p->type = pt_clientcustom;
-			if (gEngfuncs.pfnRandomLong(0, 24) == 0)
-				p->callback = R_StickyBlood1Callback;
-			else
-				p->callback = R_NormalBlood1Callback;
+			p->type = pt_vox_grav;
+			//p->type = pt_clientcustom;
+			//if (gEngfuncs.pfnRandomLong(0, 24) == 0)
+			//	p->callback = R_StickyBlood1Callback;
+			//else
+			//	p->callback = R_NormalBlood1Callback;
 
 			p->die = gEngfuncs.GetClientTime() + 1.5;
 			p->color = pcolor + gEngfuncs.pfnRandomFloat(0, 9);
@@ -817,7 +821,7 @@ void R_Explosion(vec3_t org, int scale, int framerate, int speed, int sprite, in
 	dl->color.r = 250; // -6
 	dl->color.g = 250; // -6
 	dl->color.b = 150; // -106
-	dl->die = gEngfuncs.GetClientTime() + 0.05f; // 0.5f??
+	dl->die = gEngfuncs.GetClientTime() + 0.01f;
 	dl->decay = 800.0f;
 
 	gEngfuncs.pEventAPI->EV_PlaySound(-1, org, CHAN_AUTO, va("weapons/explode%d.wav", gEngfuncs.pfnRandomLong(3, 5)), 1.0f, 0.3f, 0, PITCH_NORM);
@@ -984,6 +988,19 @@ int __MsgFunc_TempEntity(const char* pszName, int iSize, void* pbuf)
 			dir[2] = READ_COORD();
 
 			R_TracerEffect(org, dir);
+			break;
+		}
+
+		case THRILLEX_PARTICLE_LINE:
+		{
+			org[0] = READ_COORD();
+			org[1] = READ_COORD();
+			org[2] = READ_COORD();
+			dir[0] = READ_COORD();
+			dir[1] = READ_COORD();
+			dir[2] = READ_COORD();
+
+			gEngfuncs.pEfxAPI->R_ParticleLine( org, dir, 255, 255, 255, 0.5f );
 			break;
 		}
 

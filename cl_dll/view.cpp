@@ -506,7 +506,7 @@ void V_UpdatePalette (struct ref_params_s* pparams)
 	}
 
 	V_CalcBlend ();
-	gEngfuncs.Con_Printf("view: r:%.2f g:%.2f b:%.2f a:%.2f\n", v_blend[0], v_blend[1], v_blend[2], v_blend[3]);
+	//gEngfuncs.Con_Printf("view: r:%.2f g:%.2f b:%.2f a:%.2f\n", v_blend[0], v_blend[1], v_blend[2], v_blend[3]);
 }
 
 // ThrillEX Addition/Edit End

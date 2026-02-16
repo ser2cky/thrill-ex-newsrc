@@ -1990,7 +1990,12 @@ void CBaseMonster::MoveExecute( CBaseEntity *pTargetEnt, const Vector &vecDir, f
 	{
 		// don't walk more than 16 units or stairs stop working
 		flStep = min( 16.0, flTotal );
-		UTIL_MoveToOrigin ( ENT(pev), m_Route[ m_iRouteIndex ].vecLocation, flStep, MOVE_NORMAL );
+		// ThrillEX Addition/Edit Start
+		if ( m_Activity == ACT_STRAFE_LEFT || m_Activity == ACT_STRAFE_RIGHT )
+			UTIL_MoveToOrigin ( ENT(pev), m_Route[ m_iRouteIndex ].vecLocation, flStep, MOVE_STRAFE );
+		else
+			UTIL_MoveToOrigin ( ENT(pev), m_Route[ m_iRouteIndex ].vecLocation, flStep, MOVE_NORMAL );
+		// ThrillEX Addition/Edit End
 		flTotal -= flStep;
 	}
 	// ALERT( at_console, "dist %f\n", m_flGroundSpeed * pev->framerate * flInterval );
@@ -2484,19 +2489,9 @@ void CBaseMonster :: MakeIdealYaw( Vector vecTarget )
 	Vector	vecProjection;
 	
 	// strafing monster needs to face 90 degrees away from its goal
-	if ( m_movementActivity == ACT_STRAFE_LEFT )
+	if ( m_movementActivity == ACT_STRAFE_LEFT || m_movementActivity == ACT_STRAFE_RIGHT )
 	{
-		vecProjection.x = -vecTarget.y;
-		vecProjection.y = vecTarget.x;
-
-		pev->ideal_yaw = UTIL_VecToYaw( vecProjection - pev->origin );
-	}
-	else if ( m_movementActivity == ACT_STRAFE_RIGHT )
-	{
-		vecProjection.x = vecTarget.y;
-		vecProjection.y = vecTarget.x;
-
-		pev->ideal_yaw = UTIL_VecToYaw( vecProjection - pev->origin );
+		pev->ideal_yaw = pev->angles.y;
 	}
 	else
 	{

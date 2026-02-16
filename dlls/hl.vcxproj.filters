@@ -366,6 +366,9 @@
     <ClCompile Include="usermsg.cpp">
       <Filter>Source Files\Client</Filter>
     </ClCompile>
+    <ClCompile Include="grunt_ai_test.cpp">
+      <Filter>Source Files\Entities\Monsters</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="activity.h">

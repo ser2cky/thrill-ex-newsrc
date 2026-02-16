@@ -827,6 +827,17 @@ EV_StopPreviousGauss
 
 ==============================
 */
+
+void GaussImpactBalls(Vector vecDir, Vector vecWallVel, Vector vecEndpos)
+{
+	vec3_t vecImpactOrg;
+
+	for (int i = 0; i < 3; i++)
+		vecImpactOrg[i] = vecEndpos[i] - (vecDir[i] * 4.0f);
+
+	R_BouncySparks(vecImpactOrg, vecWallVel, 6, 256, 1.0f);
+}
+
 void EV_StopPreviousGauss( int idx )
 {
 	// Make sure we don't have a gauss spin event in the queue for this guy
@@ -922,6 +933,7 @@ void EV_FireGauss( event_args_t *args )
 			}
 			fFirstBeam = 0;
 
+			/*
 			gEngfuncs.pEfxAPI->R_BeamEntPoint( 
 				idx | 0x1000,
 				tr.endpos,
@@ -936,10 +948,16 @@ void EV_FireGauss( event_args_t *args )
 				m_fPrimaryFire ? 255 : 255,
 				m_fPrimaryFire ? 128 : 255,
 				m_fPrimaryFire ? 0 : 255
-			);
+			);*/
+
+			cl_entity_t* gun = gEngfuncs.GetViewModel();
+
+			if (gun)
+				gEngfuncs.pEfxAPI->R_RocketTrail(gun->attachment[0], tr.endpos, 0);
 		}
 		else
 		{
+			/*
 			gEngfuncs.pEfxAPI->R_BeamPoints( vecSrc,
 				tr.endpos,
 				m_iBeam,
@@ -954,6 +972,9 @@ void EV_FireGauss( event_args_t *args )
 				m_fPrimaryFire ? 128 : 255,
 				m_fPrimaryFire ? 0 : 255
 			);
+			*/
+
+			gEngfuncs.pEfxAPI->R_RocketTrail(vecSrc, tr.endpos, 0);
 		}
 
 		pEntity = gEngfuncs.pEventAPI->EV_GetPhysent( tr.ent );
@@ -988,8 +1009,8 @@ void EV_FireGauss( event_args_t *args )
 				vec3_t fwd;
 				VectorAdd( tr.endpos, tr.plane.normal, fwd );
 
-				gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 3, 0.1, gEngfuncs.pfnRandomFloat( 10, 20 ) / 100.0, 100,
-									255, 100 );
+				//gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 3, 0.1, gEngfuncs.pfnRandomFloat( 10, 20 ) / 100.0, 100, 255, 100 );
+				GaussImpactBalls(forward, fwd, tr.endpos);
 
 				// lose energy
 				if ( n == 0 )
@@ -1053,8 +1074,8 @@ void EV_FireGauss( event_args_t *args )
 							{
 								vec3_t fwd;
 								VectorSubtract( tr.endpos, forward, fwd );
-								gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 3, 0.1, gEngfuncs.pfnRandomFloat( 10, 20 ) / 100.0, 100,
-									255, 100 );
+								//gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 3, 0.1, gEngfuncs.pfnRandomFloat( 10, 20 ) / 100.0, 100, 255, 100 );
+								GaussImpactBalls(forward, fwd, tr.endpos);
 							}
 
 	//////////////////////////////////// WHAT TO DO HERE
@@ -1068,8 +1089,8 @@ void EV_FireGauss( event_args_t *args )
 							{
 								vec3_t fwd;
 								VectorSubtract( beam_tr.endpos, forward, fwd );
-								gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, beam_tr.endpos, fwd, m_iBalls, (int)(flDamage * 0.3), 0.1, gEngfuncs.pfnRandomFloat( 10, 20 ) / 100.0, 200,
-									255, 40 );
+								//gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, beam_tr.endpos, fwd, m_iBalls, (int)(flDamage * 0.3), 0.1, gEngfuncs.pfnRandomFloat( 10, 20 ) / 100.0, 200, 255, 40 );
+								GaussImpactBalls(forward, fwd, tr.endpos);
 							}
 							
 							VectorAdd( beam_tr.endpos, forward, vecSrc );
@@ -1093,8 +1114,8 @@ void EV_FireGauss( event_args_t *args )
 						{
 							vec3_t fwd;
 							VectorAdd( tr.endpos, tr.plane.normal, fwd );
-							gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 8, 0.6, gEngfuncs.pfnRandomFloat( 10, 20 ) / 100.0, 100,
-								255, 200 );
+							//gEngfuncs.pEfxAPI->R_Sprite_Trail( TE_SPRITETRAIL, tr.endpos, fwd, m_iBalls, 8, 0.6, gEngfuncs.pfnRandomFloat( 10, 20 ) / 100.0, 100, 255, 200 );
+							GaussImpactBalls(forward, fwd, tr.endpos);
 						}
 					}
 

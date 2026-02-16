@@ -158,6 +158,10 @@
 
 #define THRILLEX_TRACER			6		// ThrillEX Tracer effect that can be controlled with CVars.
 
+#define	THRILLEX_PARTICLE_LINE	7
+// Coord:	Start.x, Start.y, Start.z
+// Coord:	End.x, End.y, End.z
+
 // ThrillEX Addition/Edit End
 
 //

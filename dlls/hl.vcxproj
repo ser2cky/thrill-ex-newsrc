@@ -207,6 +207,7 @@
     <ClCompile Include="ggrenade.cpp" />
     <ClCompile Include="globals.cpp" />
     <ClCompile Include="gman.cpp" />
+    <ClCompile Include="grunt_ai_test.cpp" />
     <ClCompile Include="hassassin.cpp" />
     <ClCompile Include="headcrab.cpp" />
     <ClCompile Include="healthkit.cpp" />

@@ -1156,10 +1156,13 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 
 	if (flags & STUDIO_EVENTS)
 	{
+		StudioCalcAttachments();
 		// ThrillEX Addition/Edit Start
 		// Don't call if we got a muzzleflash!!
 		if (!(m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH))
+		{
 			IEngineStudio.StudioClientEvents();
+		}
 		// ThrillEX Addition/Edit End
 
 		// copy attachments into global entity array
@@ -1182,10 +1185,12 @@ int CStudioModelRenderer::StudioDrawModel( int flags )
 		// Here we can override the muzzleflash!!!
 		if ( ( m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH ) && (!cl_muzzleflash_style->value) )
 		{
-			lighting.color[2] /= 2;
-			lighting.shadelight += 56;
-			lighting.ambientlight += 56;
 			m_pCurrentEntity->curstate.effects &= ~EF_MUZZLEFLASH;
+			lighting.ambientlight = lighting.shadelight;
+			lighting.shadelight = 80;
+			lighting.color[0] = 1.0f;
+			lighting.color[1] = 1.0f;
+			lighting.color[2] = 0.65f;
 		}
 		// SERECKY JAN-24-26: thanks again to droogie for doing an
 		// engine-sided version of this effect a long time ago.
@@ -1470,7 +1475,9 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		// ThrillEX Addition/Edit Start
 		// Don't call if we got a muzzleflash!!
 		if (!(m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH))
+		{
 			IEngineStudio.StudioClientEvents();
+		}
 		// ThrillEX Addition/Edit End
 
 		// copy attachments into global entity array
@@ -1504,10 +1511,12 @@ int CStudioModelRenderer::StudioDrawPlayer( int flags, entity_state_t *pplayer )
 		// Here we can override the muzzleflash!!!
 		if ( ( m_pCurrentEntity->curstate.effects & EF_MUZZLEFLASH ) && (!cl_muzzleflash_style->value) )
 		{
-			lighting.color[2] /= 2;
-			lighting.shadelight += 56;
-			lighting.ambientlight += 56;
 			m_pCurrentEntity->curstate.effects &= ~EF_MUZZLEFLASH;
+			lighting.ambientlight = lighting.shadelight;
+			lighting.shadelight = 80;
+			lighting.color[0] = 1.0f;
+			lighting.color[1] = 1.0f;
+			lighting.color[2] = 0.65f;
 		}
 		// SERECKY JAN-24-26: thanks again to droogie for doing an
 		// engine-sided version of this effect a long time ago.

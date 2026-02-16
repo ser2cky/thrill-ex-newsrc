@@ -1278,15 +1278,14 @@ void CSentry ::	SentryDeath( void )
 	if (pev->dmgtime + RANDOM_FLOAT( 0, 2 ) > gpGlobals->time)
 	{
 		// lots of smoke
-		MESSAGE_BEGIN( MSG_BROADCAST, SVC_TEMPENTITY );
-			WRITE_BYTE( TE_SMOKE );
-			WRITE_COORD( vecSrc.x + RANDOM_FLOAT( -16, 16 ) );
-			WRITE_COORD( vecSrc.y + RANDOM_FLOAT( -16, 16 ) );
-			WRITE_COORD( vecSrc.z - 32 );
-			WRITE_SHORT( g_sModelIndexSmoke );
-			WRITE_BYTE( 15 ); // scale * 10
-			WRITE_BYTE( 8 ); // framerate
-		MESSAGE_END();
+		// ThrillEX Addition/Edit Start
+		Vector vecSmokeOrg;
+		vecSmokeOrg.x = vecSrc.x + RANDOM_FLOAT( -16.f, 16.f );
+		vecSmokeOrg.y = vecSrc.y + RANDOM_FLOAT( -16.f, 16.f );
+		vecSmokeOrg.z = vecSrc.z - 32.f;
+
+		UTIL_Smoke(vecSmokeOrg, 32, 64);
+		// ThrillEX Addition/Edit End
 	}
 	
 	if (pev->dmgtime + RANDOM_FLOAT( 0, 8 ) > gpGlobals->time)

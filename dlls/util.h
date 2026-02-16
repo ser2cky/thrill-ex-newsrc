@@ -268,6 +268,7 @@ extern void			UTIL_GunshotDecalTrace( TraceResult *pTrace, int decalNumber );
 extern void			UTIL_Sparks( const Vector &position );
 // ThrillEX Addition/Edit Start
 extern void			UTIL_Smoke( const Vector &position, int width, int height, int count = 128 );
+extern void			UTIL_ParticleLine(const Vector& start, const Vector& end, float life, unsigned char r, unsigned char g, unsigned char b);
 // ThrillEX Addition/Edit End
 extern void			UTIL_Ricochet( const Vector &position, float scale );
 extern void			UTIL_StringToVector( float *pVector, const char *pString );
